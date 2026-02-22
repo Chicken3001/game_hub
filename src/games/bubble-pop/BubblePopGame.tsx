@@ -109,7 +109,6 @@ export function BubblePopGame() {
     setBubbles((prev) => prev.filter((b) => b.id !== bubble.id));
     setScore((s) => s + 1);
 
-    const rect = (e.currentTarget as HTMLElement).closest(".bubble-container")?.getBoundingClientRect();
     const containerEl = (e.currentTarget as HTMLElement).closest(".bubble-container") as HTMLElement | null;
     const containerRect = containerEl?.getBoundingClientRect();
     const x = containerRect ? e.clientX - containerRect.left : e.clientX;
@@ -197,7 +196,6 @@ export function BubblePopGame() {
               width: bubble.size,
               height: bubble.size,
               left: `${bubble.left}%`,
-              bottom: "-20%",
               backgroundColor: bubble.color,
               animation: `bubble-rise ${bubble.duration}ms linear forwards`,
               fontSize: bubble.size * 0.5,

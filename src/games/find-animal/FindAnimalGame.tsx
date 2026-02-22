@@ -49,6 +49,7 @@ export function FindAnimalGame() {
   const [roundIdx, setRoundIdx] = useState(0);
   const [choices, setChoices] = useState<Animal[]>([]);
   const [phase, setPhase] = useState<Phase>("playing");
+  const [wrongChoice, setWrongChoice] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   const startGame = useCallback(() => {
@@ -56,6 +57,7 @@ export function FindAnimalGame() {
     setQueue(picked);
     setRoundIdx(0);
     setPhase("playing");
+    setWrongChoice(null);
     setChoices(makeChoices(picked[0], ALL_ANIMALS));
     setMounted(true);
   }, []);
@@ -71,6 +73,7 @@ export function FindAnimalGame() {
       if (phase !== "playing") return;
       if (animal.name === target.name) {
         setPhase("correct");
+        setWrongChoice(null);
         setTimeout(() => {
           const next = roundIdx + 1;
           if (next >= ROUND_COUNT) {
@@ -83,7 +86,11 @@ export function FindAnimalGame() {
         }, 900);
       } else {
         setPhase("wrong");
-        setTimeout(() => setPhase("playing"), 700);
+        setWrongChoice(animal.name);
+        setTimeout(() => {
+          setPhase("playing");
+          setWrongChoice(null);
+        }, 700);
       }
     },
     [phase, target, roundIdx, queue]
@@ -161,6 +168,7 @@ export function FindAnimalGame() {
       <div className="grid w-full grid-cols-3 gap-3">
         {choices.map((animal) => {
           const isTarget = animal.name === target.name;
+          const isWrongTap = wrongChoice === animal.name;
           return (
             <button
               key={animal.name}
@@ -173,12 +181,16 @@ export function FindAnimalGame() {
                   isCorrect && isTarget
                     ? "#10b981"
                     : isWrong && isTarget
+                    ? "#10b981"
+                    : isWrongTap
                     ? "#ef4444"
                     : "#e0d9ff",
                 backgroundColor:
                   isCorrect && isTarget
                     ? "#d1fae5"
                     : isWrong && isTarget
+                    ? "#d1fae5"
+                    : isWrongTap
                     ? "#fee2e2"
                     : "#ffffff",
               }}
