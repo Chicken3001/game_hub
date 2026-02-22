@@ -26,44 +26,54 @@ export default async function ProtectedLayout({
   const needsUsername = !profile?.username;
 
   return (
-    <div className="min-h-screen bg-sky-100">
-      <header className="border-b-2 border-sky-200 bg-white shadow-sm">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link href="/hub" className="text-xl font-bold text-sky-900">
-            🎮 Game Hub
+    <div className="min-h-screen">
+      <header className="border-b-4 border-white/20 bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 shadow-lg">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
+          <Link href="/hub" className="flex items-center gap-2 text-white transition-transform hover:scale-105">
+            <span className="text-3xl">🎮</span>
+            <span className="text-2xl font-black tracking-tight">Game Hub</span>
           </Link>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-3">
             {profile?.username && (
-              <span className="text-sm font-medium text-sky-700">
+              <span className="hidden rounded-full bg-white/20 px-3 py-1.5 text-sm font-bold text-white sm:block">
                 👋 {profile.username}
               </span>
             )}
             <Link href="/profile">
-              <Button variant="ghost" size="sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 focus:ring-white/50"
+              >
                 Profile
               </Button>
             </Link>
             <form action="/api/auth/signout" method="post">
-              <Button variant="secondary" size="sm" type="submit">
+              <Button
+                size="sm"
+                className="border-0 bg-white/20 text-white shadow-none hover:bg-white/35 focus:ring-white/50 active:bg-white/50 active:shadow-none active:translate-y-0"
+              >
                 Sign out
               </Button>
             </form>
           </nav>
         </div>
       </header>
+
       {needsUsername ? (
-        <div className="mx-auto max-w-4xl px-4 py-8">
-          <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 text-amber-900 shadow-sm">
-            <p className="font-bold">✨ Set your username</p>
-            <p className="mt-1 text-sm">
+        <div className="mx-auto max-w-4xl px-4 pt-6">
+          <div className="rounded-3xl border-2 border-amber-300 bg-gradient-to-r from-amber-100 to-yellow-100 p-4 text-amber-900 shadow-sm">
+            <p className="font-black">✨ Set your username!</p>
+            <p className="mt-1 text-sm font-semibold">
               Choose a fun name to get started!{" "}
-              <Link href="/profile" className="font-semibold underline">
+              <Link href="/profile" className="font-black underline">
                 Go to Profile
               </Link>
             </p>
           </div>
         </div>
       ) : null}
+
       <main className="mx-auto max-w-4xl px-4 py-8">{children}</main>
     </div>
   );

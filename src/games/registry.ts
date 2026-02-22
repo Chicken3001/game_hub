@@ -9,10 +9,10 @@ export interface GameEntry {
 export const GAMES: GameEntry[] = [
   {
     id: "farm-match",
-    name: "Farm Animal Match",
-    description: "Flip the cards and find the matching animal pairs!",
+    name: "Animal Memory Match",
+    description: "Flip the cards and find all the matching pairs from memory!",
     path: "/games/farm-match",
-    icon: "🐄",
+    icon: "🧠",
   },
   {
     id: "number-guess",
@@ -23,8 +23,8 @@ export const GAMES: GameEntry[] = [
   },
   {
     id: "animal-match",
-    name: "Tap to Match Animals",
-    description: "Pick farm or wild animals, then tap to match pairs!",
+    name: "Animal Match",
+    description: "Tap or drag to connect matching animal pairs!",
     path: "/games/animal-match",
     icon: "🐾",
   },

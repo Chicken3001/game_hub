@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Card } from "@/components/ui/Card";
 
 const MIN = 1;
 const MAX = 100;
@@ -11,6 +10,35 @@ const MAX = 100;
 function getRandomNumber(): number {
   return Math.floor(Math.random() * (MAX - MIN + 1)) + MIN;
 }
+
+type HintKind = "higher" | "lower" | "win" | null;
+
+const HINT_CONFIG: Record<
+  Exclude<HintKind, null>,
+  { emoji: string; label: string; bg: string; border: string; text: string }
+> = {
+  higher: {
+    emoji: "⬆️",
+    label: "Go higher!",
+    bg: "bg-sky-100",
+    border: "border-sky-300",
+    text: "text-sky-800",
+  },
+  lower: {
+    emoji: "⬇️",
+    label: "Go lower!",
+    bg: "bg-rose-100",
+    border: "border-rose-300",
+    text: "text-rose-800",
+  },
+  win: {
+    emoji: "🎉",
+    label: "You got it!",
+    bg: "bg-emerald-100",
+    border: "border-emerald-300",
+    text: "text-emerald-800",
+  },
+};
 
 export function NumberGuessGame() {
   const [target, setTarget] = useState(0);
@@ -20,29 +48,32 @@ export function NumberGuessGame() {
     setTarget(getRandomNumber());
     setMounted(true);
   }, []);
+
   const [guess, setGuess] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
+  const [hint, setHint] = useState<HintKind>(null);
   const [attempts, setAttempts] = useState(0);
   const [gameWon, setGameWon] = useState(false);
+  const [badInput, setBadInput] = useState(false);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       const num = parseInt(guess, 10);
       if (isNaN(num) || num < MIN || num > MAX) {
-        setMessage(`Enter a number between ${MIN} and ${MAX}`);
+        setBadInput(true);
         return;
       }
-
-      setAttempts((a) => a + 1);
+      setBadInput(false);
+      const next = attempts + 1;
+      setAttempts(next);
 
       if (num === target) {
-        setMessage(`You got it! It took you ${attempts + 1} ${attempts === 0 ? "try" : "tries"}. Nice work!`);
+        setHint("win");
         setGameWon(true);
       } else if (num < target) {
-        setMessage("Higher!");
+        setHint("higher");
       } else {
-        setMessage("Lower!");
+        setHint("lower");
       }
       setGuess("");
     },
@@ -52,64 +83,93 @@ export function NumberGuessGame() {
   const reset = () => {
     setTarget(getRandomNumber());
     setGuess("");
-    setMessage(null);
+    setHint(null);
     setAttempts(0);
     setGameWon(false);
+    setBadInput(false);
   };
 
   if (!mounted) {
     return (
       <div className="flex min-h-[200px] items-center justify-center">
-        <p className="font-medium text-sky-600">Getting ready…</p>
+        <p className="text-xl font-bold text-violet-400">Getting ready… 🎮</p>
       </div>
     );
   }
 
+  const hintCfg = hint ? HINT_CONFIG[hint] : null;
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="font-bold text-sky-800">Guesses: {attempts}</p>
+    <div className="space-y-5">
+      {/* Stats bar */}
+      <div className="flex items-center justify-between rounded-2xl border-2 border-violet-100 bg-white px-5 py-3 shadow-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">🎯</span>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-violet-400">Guesses</p>
+            <p className="text-2xl font-black text-indigo-900">{attempts}</p>
+          </div>
+        </div>
         <Button variant="secondary" size="sm" onClick={reset}>
-          Try a new number
+          New number 🔄
         </Button>
       </div>
 
-      <Card className="p-8">
-        <p className="mb-6 text-lg font-medium text-sky-800">
-          I'm thinking of a number between {MIN} and {MAX}. Type your guess below! 🤔
+      {/* Main card */}
+      <div className="rounded-3xl border-2 border-violet-100 bg-white p-6 shadow-[0_4px_24px_rgba(139,92,246,0.12)]">
+        <p className="text-center text-lg font-bold text-indigo-800">
+          I&apos;m thinking of a number between{" "}
+          <span className="font-black text-orange-500">{MIN}</span> and{" "}
+          <span className="font-black text-orange-500">{MAX}</span> 🤔
         </p>
 
-        {gameWon ? (
-          <div className="space-y-4">
-            <p className="text-xl font-bold text-emerald-700">{message}</p>
-            <Button onClick={reset}>Play again</Button>
+        {/* Hint block */}
+        {hintCfg && (
+          <div
+            className={`mt-5 flex flex-col items-center gap-2 rounded-3xl border-2 ${hintCfg.border} ${hintCfg.bg} py-6`}
+            style={{ animation: "pop-in 0.3s ease-out" }}
+          >
+            <span className="text-7xl leading-none">{hintCfg.emoji}</span>
+            <p className={`text-2xl font-black ${hintCfg.text}`}>{hintCfg.label}</p>
+            {hint === "win" && (
+              <p className="text-base font-bold text-emerald-700">
+                It took you {attempts} {attempts === 1 ? "guess" : "guesses"}!
+              </p>
+            )}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        )}
+
+        {/* Input */}
+        {!gameWon ? (
+          <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3">
             <Input
               type="number"
               min={MIN}
               max={MAX}
-              placeholder="Type a number…"
+              placeholder={`A number from ${MIN} to ${MAX}…`}
               value={guess}
-              onChange={(e) => setGuess(e.target.value)}
+              onChange={(e) => {
+                setGuess(e.target.value);
+                setBadInput(false);
+              }}
               autoFocus
+              className="text-center text-xl"
             />
-            {message && (
-              <p
-                className={`text-base font-bold ${
-                  message.includes("Correct")
-                    ? "text-emerald-600"
-                    : "text-sky-800"
-                }`}
-              >
-                {message}
+            {badInput && (
+              <p className="text-center text-sm font-bold text-rose-500" role="alert">
+                Please enter a number between {MIN} and {MAX}!
               </p>
             )}
-            <Button type="submit">Guess!</Button>
+            <Button type="submit" size="lg" className="w-full">
+              Guess! 🚀
+            </Button>
           </form>
+        ) : (
+          <Button size="lg" className="mt-5 w-full" onClick={reset}>
+            Play again! 🎉
+          </Button>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

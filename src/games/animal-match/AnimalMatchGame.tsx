@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import type { AnimalSet } from "./data";
 import { getPairColor } from "./data";
 
@@ -16,6 +15,13 @@ interface MatchedPair {
   color: string;
 }
 
+interface WrongPair {
+  side1: "left" | "right";
+  idx1: number;
+  side2: "left" | "right";
+  idx2: number;
+}
+
 export function AnimalMatchGame({ set }: { set: AnimalSet }) {
   const animals = set.animals;
   const [leftCards, setLeftCards] = useState<typeof animals>([]);
@@ -27,15 +33,19 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
     setRightCards(shuffle(animals));
     setMounted(true);
   }, [animals]);
+
   const [selected, setSelected] = useState<{ side: "left" | "right"; index: number } | null>(null);
   const [matched, setMatched] = useState<MatchedPair[]>([]);
+  const [wrongPair, setWrongPair] = useState<WrongPair | null>(null);
   const [tries, setTries] = useState(0);
   const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null);
   const [lines, setLines] = useState<{ x1: number; y1: number; x2: number; y2: number; color: string }[]>([]);
   const [gameWon, setGameWon] = useState(false);
+
   const leftRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const rightRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const justMatchedRef = useRef(false);
 
   const getCenter = useCallback((el: HTMLButtonElement | null) => {
@@ -51,11 +61,24 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
   }, []);
 
   const tryMatch = useCallback(
-    (firstSide: "left" | "right", firstIdx: number, secondSide: "left" | "right", secondIdx: number) => {
+    (
+      firstSide: "left" | "right",
+      firstIdx: number,
+      secondSide: "left" | "right",
+      secondIdx: number
+    ) => {
       const firstCards = firstSide === "left" ? leftCards : rightCards;
       const secondCards = secondSide === "left" ? leftCards : rightCards;
-      const matchName = firstSide !== secondSide && firstCards[firstIdx].name === secondCards[secondIdx].name;
-      if (!matchName) return;
+      const isMatch =
+        firstSide !== secondSide &&
+        firstCards[firstIdx].name === secondCards[secondIdx].name;
+
+      if (!isMatch) {
+        // Flash wrong pair
+        setWrongPair({ side1: firstSide, idx1: firstIdx, side2: secondSide, idx2: secondIdx });
+        setTimeout(() => setWrongPair(null), 600);
+        return;
+      }
 
       const leftIdx = firstSide === "left" ? firstIdx : secondIdx;
       const rightIdx = firstSide === "right" ? firstIdx : secondIdx;
@@ -78,64 +101,81 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
 
   const handleCardTap = useCallback(
     (side: "left" | "right", index: number) => {
-      const cards = side === "left" ? leftCards : rightCards;
-      const card = cards[index];
       const isMatched = matched.some(
-        (m) => (side === "left" && m.leftIdx === index) || (side === "right" && m.rightIdx === index)
+        (m) =>
+          (side === "left" && m.leftIdx === index) ||
+          (side === "right" && m.rightIdx === index)
       );
       if (isMatched) return;
 
+      // Nothing selected yet → select this card
       if (!selected) {
         setSelected({ side, index });
         setPointer(null);
         return;
       }
 
-      setTries((t) => t + 1);
+      // Tapped the same card again → deselect
       if (selected.side === side && selected.index === index) {
         setSelected(null);
         setPointer(null);
         return;
       }
 
+      // Tapped a different card → attempt match
       justMatchedRef.current = true;
+      setTries((t) => t + 1);
       tryMatch(selected.side, selected.index, side, index);
       setSelected(null);
       setPointer(null);
     },
-    [selected, leftCards, rightCards, matched, tryMatch]
+    [selected, matched, tryMatch]
   );
-
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!selected) return;
+
     const onMove = (e: PointerEvent) => setPointer({ x: e.clientX, y: e.clientY });
+
     const onUp = (e: PointerEvent) => {
       setPointer(null);
+
       if (justMatchedRef.current) {
+        // handleCardTap already handled the match and cleared selection
         justMatchedRef.current = false;
-        setSelected(null);
         return;
       }
+
       const el = document.elementFromPoint(e.clientX, e.clientY);
       if (!el || !containerRef.current?.contains(el)) {
+        // Released outside the game area → deselect
         setSelected(null);
         return;
       }
+
       const btn = el.closest("button[data-side][data-index]");
       if (!btn) {
+        // Released on non-card area → deselect
         setSelected(null);
         return;
       }
+
       const side = btn.getAttribute("data-side") as "left" | "right";
       const index = parseInt(btn.getAttribute("data-index") ?? "-1", 10);
-      if (side && index >= 0 && (selected.side !== side || selected.index !== index)) {
-        setTries((t) => t + 1);
-        tryMatch(selected.side, selected.index, side, index);
+
+      if (side && index >= 0) {
+        if (selected.side !== side || selected.index !== index) {
+          // Dragged to a different card → match attempt
+          setTries((t) => t + 1);
+          tryMatch(selected.side, selected.index, side, index);
+          setSelected(null);
+        }
+        // Same card: was a simple tap to select — keep the selection alive
+      } else {
+        setSelected(null);
       }
-      setSelected(null);
     };
+
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
     return () => {
@@ -145,13 +185,18 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
   }, [selected, tryMatch]);
 
   const selectedCenter = selected
-    ? getCenter(selected.side === "left" ? leftRefs.current[selected.index] ?? null : rightRefs.current[selected.index] ?? null)
+    ? getCenter(
+        selected.side === "left"
+          ? leftRefs.current[selected.index] ?? null
+          : rightRefs.current[selected.index] ?? null
+      )
     : null;
 
   const reset = () => {
     setSelected(null);
     setPointer(null);
     setMatched([]);
+    setWrongPair(null);
     setTries(0);
     setLines([]);
     setGameWon(false);
@@ -164,41 +209,162 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
   if (!mounted || leftCards.length === 0) {
     return (
       <div className="flex min-h-[200px] items-center justify-center">
-        <p className="font-medium text-sky-600">Getting ready…</p>
+        <p className="text-xl font-bold text-violet-400">Getting ready… 🎮</p>
       </div>
     );
   }
 
   if (gameWon) {
     return (
-      <Card className="border-emerald-300 bg-emerald-50 p-8 text-center">
-        <div className="text-5xl">🎉</div>
-        <p className="mt-4 text-2xl font-bold text-emerald-800">You did it!</p>
-        <p className="mt-2 text-emerald-700 font-medium">
-          You matched them all in {tries} {tries === 1 ? "try" : "tries"}!
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Button onClick={reset}>Play again</Button>
+      <div
+        className="rounded-3xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-100 to-teal-100 p-8 text-center shadow-lg"
+        style={{ animation: "pop-in 0.4s ease-out" }}
+      >
+        <div className="text-7xl leading-none" style={{ animation: "float 2s ease-in-out infinite" }}>
+          🎉
         </div>
-      </Card>
+        <p className="mt-4 text-3xl font-black text-emerald-800">Amazing!</p>
+        <p className="mt-2 text-lg font-bold text-emerald-700">
+          You matched them all in{" "}
+          <span className="font-black text-orange-500">{tries}</span>{" "}
+          {tries === 1 ? "try" : "tries"}!
+        </p>
+        <Button onClick={reset} size="lg" className="mt-6">
+          Play again! 🔄
+        </Button>
+      </div>
     );
   }
 
+  const isWrong = (side: "left" | "right", index: number) =>
+    wrongPair !== null &&
+    ((wrongPair.side1 === side && wrongPair.idx1 === index) ||
+      (wrongPair.side2 === side && wrongPair.idx2 === index));
+
+  const renderCard = (
+    side: "left" | "right",
+    animal: (typeof animals)[0],
+    i: number,
+    refs: React.MutableRefObject<(HTMLButtonElement | null)[]>
+  ) => {
+    const isMatched = matched.some(
+      (m) => (side === "left" && m.leftIdx === i) || (side === "right" && m.rightIdx === i)
+    );
+    const isSelected = selected?.side === side && selected?.index === i;
+    const matchColor = isMatched
+      ? matched.find((m) => (side === "left" && m.leftIdx === i) || (side === "right" && m.rightIdx === i))?.color
+      : undefined;
+    const wrong = isWrong(side, i);
+
+    return (
+      <button
+        key={`${side}-${i}-${animal.name}`}
+        ref={(el) => {
+          refs.current[i] = el;
+        }}
+        type="button"
+        data-side={side}
+        data-index={i}
+        onPointerDown={() => handleCardTap(side, i)}
+        disabled={isMatched}
+        className="flex h-24 w-28 flex-col items-center justify-center rounded-3xl border-[3px] bg-white transition-all duration-150 disabled:pointer-events-none sm:h-28 sm:w-32"
+        style={{
+          borderColor: isMatched
+            ? matchColor
+            : isSelected
+            ? "#fbbf24"
+            : wrong
+            ? "#ef4444"
+            : "#e0d9ff",
+          backgroundColor: isMatched
+            ? `${matchColor}22`
+            : wrong
+            ? "#fee2e2"
+            : isSelected
+            ? "#fef9c3"
+            : "#ffffff",
+          transform: isSelected ? "scale(1.1)" : "scale(1)",
+          animation: isSelected
+            ? "pulse-ring 1.4s ease-in-out infinite"
+            : wrong
+            ? "wrong-flash 0.6s ease-in-out"
+            : undefined,
+          boxShadow: isMatched
+            ? `0 0 0 2px ${matchColor}55`
+            : isSelected
+            ? "0 0 0 4px rgba(251,191,36,0.4)"
+            : "0 2px 12px rgba(139,92,246,0.1)",
+        }}
+      >
+        <span className="text-3xl leading-none sm:text-4xl">{animal.emoji}</span>
+        <span
+          className="mt-1 text-xs font-black sm:text-sm"
+          style={{ color: isMatched ? matchColor : animal.color }}
+        >
+          {animal.name}
+        </span>
+        {isMatched && (
+          <span className="mt-0.5 text-xs font-black text-emerald-600">✓</span>
+        )}
+      </button>
+    );
+  };
+
   return (
-    <div className="relative space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="font-bold text-sky-800">
-          Matched: {matched.length} / {animals.length}
-        </p>
-        <p className="font-bold text-sky-800">Tries: {tries}</p>
+    <div className="space-y-4">
+      {/* Stats bar */}
+      <div className="flex items-center justify-between rounded-2xl border-2 border-violet-100 bg-white px-5 py-3 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">✅</span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-violet-400">Matched</p>
+              <p className="text-xl font-black text-indigo-900">
+                {matched.length} / {animals.length}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🎯</span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-violet-400">Tries</p>
+              <p className="text-xl font-black text-indigo-900">{tries}</p>
+            </div>
+          </div>
+        </div>
+        <Button variant="secondary" size="sm" onClick={reset}>
+          Shuffle 🔄
+        </Button>
       </div>
 
-      <div ref={containerRef} className="relative flex min-h-[320px] justify-center gap-6 overflow-visible px-2 py-4">
+      {selected && (
+        <p className="text-center text-sm font-bold text-amber-600">
+          ✨ {selected.side === "left" ? leftCards[selected.index].name : rightCards[selected.index].name} selected — now tap its match!
+        </p>
+      )}
+
+      {/* Game area */}
+      <div
+        ref={containerRef}
+        className="relative flex min-h-[340px] justify-center gap-4 overflow-visible px-2 py-4 sm:gap-8"
+      >
+        {/* SVG lines */}
         <svg
           ref={svgRef}
           className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
           style={{ zIndex: 5 }}
         >
+          <defs>
+            <filter id="line-glow">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Matched lines */}
           {lines.map((line, i) => (
             <line
               key={i}
@@ -207,88 +373,47 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
               x2={line.x2}
               y2={line.y2}
               stroke={line.color}
-              strokeWidth="4"
+              strokeWidth="6"
               strokeLinecap="round"
+              filter="url(#line-glow)"
             />
           ))}
-          {selectedCenter && pointer && svgRef.current && (() => {
-            const pt = svgRef.current.createSVGPoint();
-            pt.x = pointer.x;
-            pt.y = pointer.y;
-            const p = pt.matrixTransform(svgRef.current.getScreenCTM()?.inverse());
-            return (
-              <line
-                x1={selectedCenter.x}
-                y1={selectedCenter.y}
-                x2={p.x}
-                y2={p.y}
-                stroke="#94a3b8"
-                strokeWidth="3"
-                strokeDasharray="8 6"
-                strokeLinecap="round"
-              />
-            );
-          })()}
+
+          {/* Drag preview line */}
+          {selectedCenter &&
+            pointer &&
+            svgRef.current &&
+            (() => {
+              const pt = svgRef.current!.createSVGPoint();
+              pt.x = pointer.x;
+              pt.y = pointer.y;
+              const p = pt.matrixTransform(svgRef.current!.getScreenCTM()?.inverse());
+              return (
+                <line
+                  x1={selectedCenter.x}
+                  y1={selectedCenter.y}
+                  x2={p.x}
+                  y2={p.y}
+                  stroke="#fbbf24"
+                  strokeWidth="4"
+                  strokeDasharray="10 7"
+                  strokeLinecap="round"
+                  opacity="0.8"
+                />
+              );
+            })()}
         </svg>
 
+        {/* Left column */}
         <div className="flex flex-col gap-3">
-          {leftCards.map((animal, i) => {
-            const isMatched = matched.some((m) => m.leftIdx === i);
-            const isSelected = selected?.side === "left" && selected?.index === i;
-            return (
-              <button
-                key={`left-${i}-${animal.name}`}
-                ref={(el) => { leftRefs.current[i] = el; }}
-                type="button"
-                data-side="left"
-                data-index={i}
-                onPointerDown={() => handleCardTap("left", i)}
-                className="flex h-20 w-24 flex-col items-center justify-center rounded-2xl border-2 bg-white text-2xl shadow-md transition-all hover:scale-105 disabled:pointer-events-none sm:h-24 sm:w-28"
-                style={{
-                  borderColor: isMatched ? matched.find((m) => m.leftIdx === i)?.color : isSelected ? "#f59e0b" : "#e2e8f0",
-                  opacity: isMatched ? 0.7 : 1,
-                }}
-              >
-                <span>{animal.emoji}</span>
-                <span className="text-xs font-bold sm:text-sm" style={{ color: animal.color }}>
-                  {animal.name}
-                </span>
-              </button>
-            );
-          })}
+          {leftCards.map((animal, i) => renderCard("left", animal, i, leftRefs))}
         </div>
 
+        {/* Right column */}
         <div className="flex flex-col gap-3">
-          {rightCards.map((animal, i) => {
-            const isMatched = matched.some((m) => m.rightIdx === i);
-            const isSelected = selected?.side === "right" && selected?.index === i;
-            return (
-              <button
-                key={`right-${i}-${animal.name}`}
-                ref={(el) => { rightRefs.current[i] = el; }}
-                type="button"
-                data-side="right"
-                data-index={i}
-                onPointerDown={() => handleCardTap("right", i)}
-                className="flex h-20 w-24 flex-col items-center justify-center rounded-2xl border-2 bg-white text-2xl shadow-md transition-all hover:scale-105 disabled:pointer-events-none sm:h-24 sm:w-28"
-                style={{
-                  borderColor: isMatched ? matched.find((m) => m.rightIdx === i)?.color : isSelected ? "#f59e0b" : "#e2e8f0",
-                  opacity: isMatched ? 0.7 : 1,
-                }}
-              >
-                <span>{animal.emoji}</span>
-                <span className="text-xs font-bold sm:text-sm" style={{ color: animal.color }}>
-                  {animal.name}
-                </span>
-              </button>
-            );
-          })}
+          {rightCards.map((animal, i) => renderCard("right", animal, i, rightRefs))}
         </div>
       </div>
-
-      <Button variant="secondary" size="sm" onClick={reset}>
-        Shuffle & play again
-      </Button>
     </div>
   );
 }

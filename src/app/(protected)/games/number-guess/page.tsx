@@ -6,16 +6,18 @@ export default function NumberGuessPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link
-          href="/hub"
-          className="inline-block rounded-2xl transition-transform hover:scale-105"
-        >
+        <Link href="/hub" className="inline-block transition-transform hover:scale-105">
           <Button variant="back" size="md">
             🎮 Back to all games
           </Button>
         </Link>
       </div>
-      <h1 className="text-3xl font-bold text-sky-900">🔢 Number Guessing</h1>
+      <div>
+        <h1 className="text-4xl font-black text-indigo-900">🔢 Number Guessing</h1>
+        <p className="mt-2 font-semibold text-violet-500">
+          Can you figure out the secret number?
+        </p>
+      </div>
       <NumberGuessGame />
     </div>
   );

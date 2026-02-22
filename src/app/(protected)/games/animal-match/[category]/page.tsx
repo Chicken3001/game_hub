@@ -15,27 +15,25 @@ export default async function AnimalMatchCategoryPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <Link
-          href="/games/animal-match"
-          className="inline-block rounded-2xl transition-transform hover:scale-105"
-        >
+        <Link href="/games/animal-match" className="inline-block transition-transform hover:scale-105">
           <Button variant="back" size="md">
             ← Pick another set
           </Button>
         </Link>
-        <Link
-          href="/hub"
-          className="inline-block rounded-2xl transition-transform hover:scale-105"
-        >
+        <Link href="/hub" className="inline-block transition-transform hover:scale-105">
           <Button variant="back" size="md">
-            🎮 Back to all games
+            🎮 All games
           </Button>
         </Link>
       </div>
-      <h1 className="text-3xl font-bold text-sky-900">
-        {set.icon} {set.name}
-      </h1>
-      <p className="text-sky-700">Tap one animal on the left, then its match on the right!</p>
+      <div>
+        <h1 className="text-4xl font-black text-indigo-900">
+          {set.icon} {set.name}
+        </h1>
+        <p className="mt-2 font-semibold text-violet-500">
+          Tap an animal to select it, then tap its match — or drag across to draw the line!
+        </p>
+      </div>
       <AnimalMatchGame set={set} />
     </div>
   );

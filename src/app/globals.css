@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #e0f2fe;
-  --foreground: #0c4a6e;
-  --primary: #ea580c;
-  --primary-hover: #c2410c;
+  --background: #fffbef;
+  --foreground: #312e81;
+  --primary: #f97316;
+  --primary-shadow: #c2410c;
   --card-bg: #ffffff;
-  --accent: #38bdf8;
+  --accent: #8b5cf6;
 }
 
 @theme inline {
@@ -15,7 +15,13 @@
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(253, 186, 116, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 90% 15%, rgba(167, 243, 208, 0.28) 0%, transparent 40%),
+    radial-gradient(circle at 75% 85%, rgba(196, 181, 253, 0.28) 0%, transparent 40%),
+    radial-gradient(circle at 20% 90%, rgba(252, 165, 165, 0.22) 0%, transparent 40%);
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-nunito), system-ui, sans-serif;
 }
@@ -26,4 +32,36 @@ a, button, [role="button"] {
 
 button:disabled, [aria-disabled="true"] {
   cursor: not-allowed;
+}
+
+@keyframes pop-in {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-6deg); }
+  50%       { transform: rotate(6deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0px rgba(251, 191, 36, 0.7); }
+  70%  { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+  100% { box-shadow: 0 0 0 0px rgba(251, 191, 36, 0); }
+}
+
+@keyframes wrong-flash {
+  0%, 100% { background-color: transparent; }
+  40%       { background-color: rgba(239, 68, 68, 0.25); }
+}
+
+@keyframes card-appear {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
