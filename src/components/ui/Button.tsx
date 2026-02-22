@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost" | "back";
   size?: "sm" | "md" | "lg";
 }
 
@@ -18,14 +18,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const base =
-      "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+      "inline-flex items-center justify-center font-semibold rounded-2xl transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
     const variants = {
       primary:
-        "bg-stone-800 text-white hover:bg-stone-700 active:bg-stone-900",
+        "bg-orange-500 text-white hover:bg-orange-600 active:bg-orange-700",
       secondary:
-        "bg-stone-200 text-stone-900 hover:bg-stone-300 active:bg-stone-400",
+        "bg-amber-200 text-sky-900 hover:bg-amber-300 active:bg-amber-400",
       ghost:
-        "bg-transparent text-stone-700 hover:bg-stone-100 active:bg-stone-200",
+        "bg-transparent text-sky-800 hover:bg-sky-100/80 active:bg-sky-200/80",
+      back:
+        "bg-sky-50 text-sky-800 border-2 border-sky-300 hover:bg-sky-200 hover:border-sky-400 hover:shadow-md active:bg-sky-300",
     };
     const sizes = {
       sm: "px-3 py-1.5 text-sm",
@@ -33,10 +35,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       lg: "px-6 py-3 text-lg",
     };
 
+    const hasShadow = variant !== "back";
     return (
       <button
         ref={ref}
-        className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
+        className={`${base} ${variants[variant]} ${hasShadow ? "shadow-sm hover:shadow" : ""} ${sizes[size]} ${className}`}
         disabled={disabled}
         {...props}
       >

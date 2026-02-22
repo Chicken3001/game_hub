@@ -38,10 +38,10 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative z-10 w-full max-w-md rounded-xl border border-stone-200 bg-white p-6 shadow-xl">
+      <div className="relative z-10 w-full max-w-md rounded-2xl border-2 border-sky-200 bg-white p-6 shadow-xl">
         {title && (
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-stone-900">{title}</h2>
+            <h2 className="text-xl font-bold text-sky-900">{title}</h2>
             <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
               ×
             </Button>

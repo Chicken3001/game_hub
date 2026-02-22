@@ -9,14 +9,14 @@ interface GameCardProps {
 export function GameCard({ game }: GameCardProps) {
   return (
     <Link href={game.path}>
-      <Card className="block p-6 transition-shadow hover:shadow-md">
-        <span className="text-4xl" aria-hidden>
+      <Card className="block p-6 transition-all hover:shadow-lg hover:scale-[1.02] hover:border-orange-300">
+        <span className="text-5xl" aria-hidden>
           {game.icon ?? "🎮"}
         </span>
-        <h2 className="mt-3 text-xl font-semibold text-stone-900">
+        <h2 className="mt-4 text-xl font-bold text-sky-900">
           {game.name}
         </h2>
-        <p className="mt-2 text-sm text-stone-600">{game.description}</p>
+        <p className="mt-2 text-sky-700">{game.description}</p>
       </Card>
     </Link>
   );

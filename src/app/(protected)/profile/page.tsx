@@ -73,22 +73,23 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <p className="text-stone-600">Loading…</p>
+        <p className="text-sky-700 font-medium">Getting your profile…</p>
       </div>
     );
   }
 
   return (
-    <Card className="max-w-md p-6">
-      <h1 className="mb-6 text-2xl font-bold text-stone-900">Profile</h1>
+    <Card className="max-w-md p-8">
+      <h1 className="mb-2 text-3xl font-bold text-sky-900">Your profile</h1>
+      <p className="mb-6 text-sky-700">This is the name other players will see. Make it fun!</p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <label htmlFor="username" className="text-sm font-medium text-stone-700">
-          Username
+        <label htmlFor="username" className="text-sm font-bold text-sky-800">
+          Your username
         </label>
         <Input
           id="username"
           type="text"
-          placeholder="Your username"
+          placeholder="e.g. SuperStar123 or CoolKid"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           minLength={1}
@@ -96,12 +97,12 @@ export default function ProfilePage() {
           required
         />
         {error && (
-          <p className="text-sm text-red-600" role="alert">
-            {error}
+          <p className="text-sm text-red-600 font-medium" role="alert">
+            Oops! {error}
           </p>
         )}
         <Button type="submit" disabled={saving}>
-          {saving ? "Saving…" : "Save"}
+          {saving ? "Saving…" : "Save my name"}
         </Button>
       </form>
     </Card>

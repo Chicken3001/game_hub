@@ -26,16 +26,16 @@ export default async function ProtectedLayout({
   const needsUsername = !profile?.username;
 
   return (
-    <div className="min-h-screen bg-stone-100">
-      <header className="border-b border-stone-200 bg-white">
+    <div className="min-h-screen bg-sky-100">
+      <header className="border-b-2 border-sky-200 bg-white shadow-sm">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-          <Link href="/hub" className="text-lg font-semibold text-stone-900">
-            Game Hub
+          <Link href="/hub" className="text-xl font-bold text-sky-900">
+            🎮 Game Hub
           </Link>
           <nav className="flex items-center gap-4">
             {profile?.username && (
-              <span className="text-sm text-stone-600">
-                {profile.username}
+              <span className="text-sm font-medium text-sky-700">
+                👋 {profile.username}
               </span>
             )}
             <Link href="/profile">
@@ -53,11 +53,11 @@ export default async function ProtectedLayout({
       </header>
       {needsUsername ? (
         <div className="mx-auto max-w-4xl px-4 py-8">
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900">
-            <p className="font-medium">Set your username</p>
+          <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-4 text-amber-900 shadow-sm">
+            <p className="font-bold">✨ Set your username</p>
             <p className="mt-1 text-sm">
-              You need a username to continue.{" "}
-              <Link href="/profile" className="underline">
+              Choose a fun name to get started!{" "}
+              <Link href="/profile" className="font-semibold underline">
                 Go to Profile
               </Link>
             </p>
