@@ -3,19 +3,45 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 
-const ANIMALS = ["🐄", "🐷", "🐔", "🐑", "🐴", "🐕"];
+const PAIRS = 6;
 
-const CARD_COLORS: Record<string, { bg: string; border: string }> = {
-  "🐄": { bg: "#d1fae5", border: "#34d399" },
-  "🐷": { bg: "#fce7f3", border: "#f472b6" },
-  "🐔": { bg: "#fef9c3", border: "#facc15" },
-  "🐑": { bg: "#dbeafe", border: "#60a5fa" },
-  "🐴": { bg: "#ede9fe", border: "#a78bfa" },
-  "🐕": { bg: "#ffedd5", border: "#fb923c" },
-};
+const ALL_ANIMALS: { emoji: string; bg: string; border: string }[] = [
+  { emoji: "🐄", bg: "#d1fae5", border: "#34d399" },
+  { emoji: "🐷", bg: "#fce7f3", border: "#f472b6" },
+  { emoji: "🐔", bg: "#fef9c3", border: "#facc15" },
+  { emoji: "🐑", bg: "#dbeafe", border: "#60a5fa" },
+  { emoji: "🐴", bg: "#ede9fe", border: "#a78bfa" },
+  { emoji: "🐕", bg: "#ffedd5", border: "#fb923c" },
+  { emoji: "🐈", bg: "#f5f3ff", border: "#c4b5fd" },
+  { emoji: "🐇", bg: "#fdf2f8", border: "#f0abfc" },
+  { emoji: "🦊", bg: "#fff7ed", border: "#fdba74" },
+  { emoji: "🐻", bg: "#fef3c7", border: "#d97706" },
+  { emoji: "🐼", bg: "#f0fdf4", border: "#86efac" },
+  { emoji: "🐨", bg: "#f0f9ff", border: "#7dd3fc" },
+  { emoji: "🦁", bg: "#fffbeb", border: "#fbbf24" },
+  { emoji: "🐯", bg: "#fff7ed", border: "#fb923c" },
+  { emoji: "🦒", bg: "#fefce8", border: "#fde047" },
+  { emoji: "🐘", bg: "#f1f5f9", border: "#94a3b8" },
+  { emoji: "🐸", bg: "#f0fdf4", border: "#4ade80" },
+  { emoji: "🦋", bg: "#faf5ff", border: "#d8b4fe" },
+  { emoji: "🐢", bg: "#ecfdf5", border: "#34d399" },
+  { emoji: "🦜", bg: "#fff1f2", border: "#fb7185" },
+  { emoji: "🦆", bg: "#ecfeff", border: "#22d3ee" },
+  { emoji: "🐬", bg: "#eff6ff", border: "#60a5fa" },
+  { emoji: "🐙", bg: "#fdf4ff", border: "#e879f9" },
+  { emoji: "🦀", bg: "#fff1f2", border: "#f87171" },
+];
+
+const CARD_COLORS: Record<string, { bg: string; border: string }> = Object.fromEntries(
+  ALL_ANIMALS.map(({ emoji, bg, border }) => [emoji, { bg, border }])
+);
 
 function createDeck(): string[] {
-  return [...ANIMALS, ...ANIMALS].sort(() => Math.random() - 0.5);
+  const picked = [...ALL_ANIMALS]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, PAIRS)
+    .map((a) => a.emoji);
+  return [...picked, ...picked].sort(() => Math.random() - 0.5);
 }
 
 export function FarmMatchGame() {
