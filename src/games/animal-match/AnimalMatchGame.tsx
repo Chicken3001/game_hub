@@ -267,7 +267,7 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
         data-index={i}
         onPointerDown={() => handleCardTap(side, i)}
         disabled={isMatched}
-        className="flex h-24 w-28 flex-col items-center justify-center rounded-3xl border-[3px] bg-white transition-all duration-150 disabled:pointer-events-none sm:h-28 sm:w-32"
+        className="flex h-16 w-20 flex-col items-center justify-center rounded-2xl border-[3px] bg-white transition-all duration-150 disabled:pointer-events-none sm:h-20 sm:w-24"
         style={{
           borderColor: isMatched
             ? matchColor
@@ -296,15 +296,15 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
             : "0 2px 12px rgba(139,92,246,0.1)",
         }}
       >
-        <span className="text-3xl leading-none sm:text-4xl">{animal.emoji}</span>
+        <span className="text-2xl leading-none sm:text-3xl">{animal.emoji}</span>
         <span
-          className="mt-1 text-xs font-black sm:text-sm"
+          className="mt-0.5 text-[10px] font-black sm:text-xs"
           style={{ color: isMatched ? matchColor : animal.color }}
         >
           {animal.name}
         </span>
         {isMatched && (
-          <span className="mt-0.5 text-xs font-black text-emerald-600">✓</span>
+          <span className="text-[10px] font-black text-emerald-600">✓</span>
         )}
       </button>
     );
@@ -313,25 +313,10 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
   return (
     <div className="space-y-4">
       {/* Stats bar */}
-      <div className="flex items-center justify-between rounded-2xl border-2 border-violet-100 bg-white px-5 py-3 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">✅</span>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-violet-400">Matched</p>
-              <p className="text-xl font-black text-indigo-900">
-                {matched.length} / {animals.length}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🎯</span>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-violet-400">Tries</p>
-              <p className="text-xl font-black text-indigo-900">{tries}</p>
-            </div>
-          </div>
-        </div>
+      <div className="flex items-center justify-between rounded-2xl border-2 border-violet-100 bg-white px-4 py-2 shadow-sm">
+        <p className="font-black text-indigo-900">
+          ✅ {matched.length}/{animals.length} &nbsp;·&nbsp; 🎯 {tries} tries
+        </p>
         <Button variant="secondary" size="sm" onClick={reset}>
           Shuffle 🔄
         </Button>
@@ -346,7 +331,7 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
       {/* Game area */}
       <div
         ref={containerRef}
-        className="relative flex min-h-[340px] justify-center gap-4 overflow-visible px-2 py-4 sm:gap-8"
+        className="relative flex justify-center gap-3 overflow-visible px-2 py-2 sm:gap-6"
       >
         {/* SVG lines */}
         <svg
@@ -405,12 +390,12 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
         </svg>
 
         {/* Left column */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           {leftCards.map((animal, i) => renderCard("left", animal, i, leftRefs))}
         </div>
 
         {/* Right column */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           {rightCards.map((animal, i) => renderCard("right", animal, i, rightRefs))}
         </div>
       </div>

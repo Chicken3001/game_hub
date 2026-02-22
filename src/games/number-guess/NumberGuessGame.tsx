@@ -102,22 +102,16 @@ export function NumberGuessGame() {
   return (
     <div className="space-y-5">
       {/* Stats bar */}
-      <div className="flex items-center justify-between rounded-2xl border-2 border-violet-100 bg-white px-5 py-3 shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🎯</span>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-violet-400">Guesses</p>
-            <p className="text-2xl font-black text-indigo-900">{attempts}</p>
-          </div>
-        </div>
+      <div className="flex items-center justify-between rounded-2xl border-2 border-violet-100 bg-white px-4 py-2 shadow-sm">
+        <p className="font-black text-indigo-900">🎯 {attempts} {attempts === 1 ? "guess" : "guesses"}</p>
         <Button variant="secondary" size="sm" onClick={reset}>
           New number 🔄
         </Button>
       </div>
 
       {/* Main card */}
-      <div className="rounded-3xl border-2 border-violet-100 bg-white p-6 shadow-[0_4px_24px_rgba(139,92,246,0.12)]">
-        <p className="text-center text-lg font-bold text-indigo-800">
+      <div className="rounded-3xl border-2 border-violet-100 bg-white p-4 shadow-[0_4px_24px_rgba(139,92,246,0.12)]">
+        <p className="text-center font-bold text-indigo-800">
           I&apos;m thinking of a number between{" "}
           <span className="font-black text-orange-500">{MIN}</span> and{" "}
           <span className="font-black text-orange-500">{MAX}</span> 🤔
@@ -126,22 +120,24 @@ export function NumberGuessGame() {
         {/* Hint block */}
         {hintCfg && (
           <div
-            className={`mt-5 flex flex-col items-center gap-2 rounded-3xl border-2 ${hintCfg.border} ${hintCfg.bg} py-6`}
+            className={`mt-3 flex items-center justify-center gap-3 rounded-2xl border-2 ${hintCfg.border} ${hintCfg.bg} py-3 px-4`}
             style={{ animation: "pop-in 0.3s ease-out" }}
           >
-            <span className="text-7xl leading-none">{hintCfg.emoji}</span>
-            <p className={`text-2xl font-black ${hintCfg.text}`}>{hintCfg.label}</p>
-            {hint === "win" && (
-              <p className="text-base font-bold text-emerald-700">
-                It took you {attempts} {attempts === 1 ? "guess" : "guesses"}!
-              </p>
-            )}
+            <span className="text-4xl leading-none">{hintCfg.emoji}</span>
+            <div>
+              <p className={`text-xl font-black ${hintCfg.text}`}>{hintCfg.label}</p>
+              {hint === "win" && (
+                <p className="text-sm font-bold text-emerald-700">
+                  {attempts} {attempts === 1 ? "guess" : "guesses"}!
+                </p>
+              )}
+            </div>
           </div>
         )}
 
         {/* Input */}
         {!gameWon ? (
-          <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3">
+          <form onSubmit={handleSubmit} className="mt-3 flex flex-col gap-2">
             <Input
               type="number"
               min={MIN}
@@ -165,7 +161,7 @@ export function NumberGuessGame() {
             </Button>
           </form>
         ) : (
-          <Button size="lg" className="mt-5 w-full" onClick={reset}>
+          <Button size="lg" className="mt-3 w-full" onClick={reset}>
             Play again! 🎉
           </Button>
         )}

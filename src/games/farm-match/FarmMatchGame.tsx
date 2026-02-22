@@ -103,16 +103,10 @@ export function FarmMatchGame() {
   return (
     <div className="space-y-5">
       {/* Stats bar */}
-      <div className="flex items-center justify-between rounded-2xl border-2 border-violet-100 bg-white px-5 py-3 shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">✅</span>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-violet-400">Pairs found</p>
-            <p className="text-2xl font-black text-indigo-900">
-              {matched.size / 2} / {deck.length / 2}
-            </p>
-          </div>
-        </div>
+      <div className="flex items-center justify-between rounded-2xl border-2 border-violet-100 bg-white px-4 py-2 shadow-sm">
+        <p className="font-black text-indigo-900">
+          ✅ {matched.size / 2} / {deck.length / 2} pairs
+        </p>
         <Button variant="secondary" size="sm" onClick={reset}>
           Shuffle 🔄
         </Button>
@@ -138,7 +132,7 @@ export function FarmMatchGame() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3">
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-3">
           {deck.map((animal, index) => {
             const isRevealed = flipped.has(index) || matched.has(index);
             const isMatchedCard = matched.has(index);

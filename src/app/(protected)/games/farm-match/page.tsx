@@ -4,19 +4,12 @@ import { Button } from "@/components/ui/Button";
 
 export default function FarmMatchPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/hub" className="inline-block transition-transform hover:scale-105">
-          <Button variant="back" size="md">
-            🎮 Back to all games
-          </Button>
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        <Link href="/hub">
+          <Button variant="back" size="sm">🎮 Hub</Button>
         </Link>
-      </div>
-      <div>
-        <h1 className="text-4xl font-black text-indigo-900">🧠 Animal Memory Match</h1>
-        <p className="mt-2 font-semibold text-violet-500">
-          Flip two cards — if they match they stay open. Find all the pairs!
-        </p>
+        <h1 className="text-2xl font-black text-indigo-900">🧠 Animal Memory Match</h1>
       </div>
       <FarmMatchGame />
     </div>
