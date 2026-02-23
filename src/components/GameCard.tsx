@@ -36,6 +36,11 @@ const GAME_COLORS: Record<string, { from: string; to: string; border: string }> 
     to: "to-violet-50",
     border: "border-purple-300",
   },
+  "tic-tac-toe": {
+    from: "from-indigo-100",
+    to: "to-blue-50",
+    border: "border-indigo-300",
+  },
 };
 
 const DEFAULT_COLORS = {

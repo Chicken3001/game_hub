@@ -49,4 +49,11 @@ export const GAMES: GameEntry[] = [
     path: "/games/shape-sorter",
     icon: "🔷",
   },
+  {
+    id: "tic-tac-toe",
+    name: "Tic-Tac-Toe",
+    description: "Challenge a friend! Share a link and play in real time.",
+    path: "/games/tic-tac-toe",
+    icon: "❌",
+  },
 ];

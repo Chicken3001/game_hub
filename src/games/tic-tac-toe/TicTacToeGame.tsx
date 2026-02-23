@@ -1,0 +1,258 @@
+'use client';
+
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import type { TicTacToeGameRow, CellValue, GameStatus, PlayerSymbol } from './types';
+
+const WIN_LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],
+  [0, 4, 8], [2, 4, 6],
+];
+
+function checkWinner(b: CellValue[]): PlayerSymbol | 'draw' | null {
+  for (const [a, x, c] of WIN_LINES) {
+    if (b[a] && b[a] === b[x] && b[a] === b[c]) return b[a] as PlayerSymbol;
+  }
+  return b.every(v => v !== '') ? 'draw' : null;
+}
+
+interface Props {
+  initialGame: TicTacToeGameRow;
+  currentUserId: string;
+  roomId: string;
+}
+
+export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
+  const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+  const [game, setGame] = useState(initialGame);
+  const [joining, setJoining] = useState(false);
+
+  const mySymbol: PlayerSymbol | null =
+    game.player_x === currentUserId ? 'X'
+    : game.player_o === currentUserId ? 'O'
+    : null;
+  const isMyTurn = game.status === 'active' && game.current_turn === mySymbol;
+  const isSpectator = mySymbol === null;
+
+  // Effect 1 — join on mount
+  useEffect(() => {
+    if (initialGame.status !== 'waiting') return;
+    if (initialGame.player_x === currentUserId) return;
+    if (initialGame.player_o !== null) return;
+
+    setJoining(true);
+    supabase
+      .from('tic_tac_toe_games')
+      .update({ player_o: currentUserId, status: 'active' })
+      .eq('id', roomId)
+      .is('player_o', null)
+      .select()
+      .single()
+      .then(({ data, error }) => {
+        setJoining(false);
+        if (error || !data) {
+          // Race lost — re-fetch authoritative state
+          supabase
+            .from('tic_tac_toe_games')
+            .select('*')
+            .eq('id', roomId)
+            .single()
+            .then(({ data: r }) => {
+              if (r) setGame(r as TicTacToeGameRow);
+            });
+        }
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentional: run once on mount using initialGame snapshot
+
+  // Effect 2 — Realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel(`ttt:${roomId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'tic_tac_toe_games',
+          filter: `id=eq.${roomId}`,
+        },
+        (payload) => setGame(payload.new as TicTacToeGameRow)
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [roomId, supabase]);
+
+  async function handleCellClick(i: number) {
+    if (!isMyTurn || game.board[i] !== '' || game.status !== 'active') return;
+    const newBoard = [...game.board] as CellValue[];
+    newBoard[i] = mySymbol!;
+    const winner = checkWinner(newBoard);
+    const newStatus: GameStatus =
+      winner === 'X' ? 'x_wins'
+      : winner === 'O' ? 'o_wins'
+      : winner === 'draw' ? 'draw'
+      : 'active';
+
+    setGame(g => ({
+      ...g,
+      board: newBoard,
+      status: newStatus,
+      current_turn: newStatus === 'active' ? (mySymbol === 'X' ? 'O' : 'X') : g.current_turn,
+    }));
+
+    await supabase
+      .from('tic_tac_toe_games')
+      .update({
+        board: newBoard,
+        current_turn: mySymbol === 'X' ? 'O' : 'X',
+        status: newStatus,
+      })
+      .eq('id', roomId)
+      .eq('current_turn', mySymbol!)
+      .eq('status', 'active');
+  }
+
+  if (game.status === 'cancelled') {
+    return (
+      <div className="flex flex-col items-center gap-4 py-8">
+        <div className="text-5xl">🚫</div>
+        <p className="text-xl font-black text-slate-700">This game was cancelled</p>
+        <button
+          onClick={() => router.push('/games/tic-tac-toe')}
+          className="rounded-2xl border-2 border-indigo-300 bg-indigo-600 px-6 py-2 text-sm font-black text-white shadow transition hover:bg-indigo-700 active:scale-95"
+        >
+          Back to Lobby
+        </button>
+      </div>
+    );
+  }
+
+  const gameOver = game.status === 'x_wins' || game.status === 'o_wins' || game.status === 'draw';
+  const iWon =
+    (game.status === 'x_wins' && mySymbol === 'X') ||
+    (game.status === 'o_wins' && mySymbol === 'O');
+  const opponentWon =
+    (game.status === 'x_wins' && mySymbol === 'O') ||
+    (game.status === 'o_wins' && mySymbol === 'X');
+
+  return (
+    <div className="flex flex-col items-center gap-6 py-4">
+      {/* Waiting state — player X waiting for opponent */}
+      {game.status === 'waiting' && mySymbol === 'X' && (
+        <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-blue-50 px-8 py-8 shadow-md">
+          <div className="text-5xl animate-bounce">⏳</div>
+          <p className="text-xl font-black text-indigo-800">Waiting for opponent…</p>
+          <p className="text-sm font-semibold text-indigo-500">
+            Your game is listed in the lobby — a friend can join from there.
+          </p>
+        </div>
+      )}
+
+      {/* Joining spinner */}
+      {game.status === 'waiting' && joining && (
+        <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-indigo-200 bg-indigo-50 px-8 py-8">
+          <div className="text-5xl animate-spin">🌀</div>
+          <p className="text-xl font-black text-indigo-800">Joining game…</p>
+        </div>
+      )}
+
+      {/* Spectator view */}
+      {isSpectator && game.status !== 'waiting' && !joining && (
+        <div className="flex flex-col items-center gap-4 rounded-3xl border-2 border-amber-200 bg-amber-50 px-8 py-8 shadow-md">
+          <div className="text-5xl">👀</div>
+          <p className="text-xl font-black text-amber-800">This game is full</p>
+          <p className="text-sm font-semibold text-amber-600">You are spectating</p>
+        </div>
+      )}
+
+      {/* Active board or game over */}
+      {(game.status === 'active' || gameOver || isSpectator) && (
+        <div className="flex flex-col items-center gap-4 w-full max-w-xs">
+          {/* Status bar */}
+          {!gameOver && game.status === 'active' && (
+            <p className={`text-lg font-black ${isMyTurn ? 'text-indigo-700' : 'text-slate-500'}`}>
+              {isSpectator
+                ? `${game.current_turn}'s turn`
+                : isMyTurn
+                ? '🎯 Your turn!'
+                : "⏳ Opponent's turn…"}
+            </p>
+          )}
+
+          {/* Board */}
+          <div className="grid grid-cols-3 gap-3 w-full">
+            {game.board.map((cell, i) => (
+              <button
+                key={i}
+                onClick={() => handleCellClick(i)}
+                disabled={!isMyTurn || cell !== '' || game.status !== 'active'}
+                className={`
+                  aspect-square rounded-2xl border-2 text-5xl font-black shadow-sm
+                  transition-all duration-100
+                  ${cell === 'X' ? 'text-indigo-600' : 'text-rose-500'}
+                  ${cell === '' && isMyTurn
+                    ? 'border-indigo-200 bg-white hover:bg-indigo-50 hover:border-indigo-400 cursor-pointer active:scale-95'
+                    : 'border-slate-200 bg-white/70 cursor-default'}
+                  ${gameOver ? 'opacity-80' : ''}
+                `}
+              >
+                {cell}
+              </button>
+            ))}
+          </div>
+
+          {/* Game over */}
+          {gameOver && (
+            <div className={`
+              mt-2 flex flex-col items-center gap-3 rounded-3xl border-2 px-8 py-6 shadow-md w-full
+              ${game.status === 'draw' ? 'border-slate-300 bg-slate-50'
+                : iWon ? 'border-green-300 bg-green-50'
+                : opponentWon ? 'border-rose-300 bg-rose-50'
+                : 'border-slate-300 bg-slate-50'}
+            `}>
+              <div className="text-4xl">
+                {game.status === 'draw' ? '🤝'
+                  : iWon ? '🏆'
+                  : opponentWon ? '😢'
+                  : game.status === 'x_wins' ? '❌'
+                  : '⭕'}
+              </div>
+              <p className={`text-xl font-black ${
+                game.status === 'draw' ? 'text-slate-700'
+                : iWon ? 'text-green-700'
+                : opponentWon ? 'text-rose-700'
+                : 'text-slate-700'
+              }`}>
+                {game.status === 'draw' ? "It's a draw!"
+                  : iWon ? 'You win!'
+                  : opponentWon ? 'You lost!'
+                  : game.status === 'x_wins' ? 'X wins!'
+                  : 'O wins!'}
+              </p>
+              <button
+                onClick={() => router.push('/games/tic-tac-toe')}
+                className="rounded-2xl border-2 border-indigo-300 bg-indigo-600 px-6 py-2 text-sm font-black text-white shadow transition hover:bg-indigo-700 active:scale-95"
+              >
+                Back to Lobby
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Symbol indicator */}
+      {mySymbol && game.status !== 'waiting' && (
+        <p className="text-sm font-semibold text-slate-500">
+          You are playing as{' '}
+          <span className={`font-black ${mySymbol === 'X' ? 'text-indigo-600' : 'text-rose-500'}`}>
+            {mySymbol === 'X' ? '❌ X' : '⭕ O'}
+          </span>
+        </p>
+      )}
+    </div>
+  );
+}
