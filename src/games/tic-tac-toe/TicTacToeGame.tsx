@@ -30,12 +30,32 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
   const [game, setGame] = useState(initialGame);
   const [joining, setJoining] = useState(false);
 
+  const [opponentUsername, setOpponentUsername] = useState<string | null>(null);
+
   const mySymbol: PlayerSymbol | null =
     game.player_x === currentUserId ? 'X'
     : game.player_o === currentUserId ? 'O'
     : null;
   const isMyTurn = game.status === 'active' && game.current_turn === mySymbol;
   const isSpectator = mySymbol === null;
+
+  const opponentId =
+    mySymbol === 'X' ? game.player_o
+    : mySymbol === 'O' ? game.player_x
+    : null;
+
+  // Fetch opponent's username whenever their ID becomes known
+  useEffect(() => {
+    if (!opponentId) return;
+    supabase
+      .from('profiles')
+      .select('username')
+      .eq('id', opponentId)
+      .single()
+      .then(({ data }) => {
+        if (data) setOpponentUsername(data.username);
+      });
+  }, [opponentId, supabase]);
 
   // Effect 1 — join on mount
   useEffect(() => {
@@ -179,7 +199,7 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
                 ? `${game.current_turn}'s turn`
                 : isMyTurn
                 ? '🎯 Your turn!'
-                : "⏳ Opponent's turn…"}
+                : `⏳ ${opponentUsername ?? "Opponent"}'s turn…`}
             </p>
           )}
 
@@ -244,13 +264,11 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
         </div>
       )}
 
-      {/* Symbol indicator */}
+      {/* Symbol indicator + vs */}
       {mySymbol && game.status !== 'waiting' && (
         <p className="text-sm font-semibold text-slate-500">
-          You are playing as{' '}
-          <span className={`font-black ${mySymbol === 'X' ? 'text-indigo-600' : 'text-rose-500'}`}>
-            {mySymbol === 'X' ? '❌ X' : '⭕ O'}
-          </span>
+          You ({mySymbol === 'X' ? <span className="font-black text-indigo-600">❌ X</span> : <span className="font-black text-rose-500">⭕ O</span>})
+          {opponentUsername && <> vs <span className="font-black text-slate-700">{opponentUsername}</span></>}
         </p>
       )}
     </div>
