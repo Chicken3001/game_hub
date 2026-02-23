@@ -57,7 +57,21 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
       });
   }, [opponentId, supabase]);
 
-  // Effect 1 — join on mount
+  // Effect 1 — cancel waiting game when host navigates away
+  useEffect(() => {
+    if (initialGame.status !== 'waiting' || initialGame.player_x !== currentUserId) return;
+    return () => {
+      supabase
+        .from('tic_tac_toe_games')
+        .update({ status: 'cancelled' })
+        .eq('id', roomId)
+        .eq('status', 'waiting')
+        .then(() => {});
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentional: captures initialGame snapshot
+
+  // Effect 2 — join on mount
   useEffect(() => {
     if (initialGame.status !== 'waiting') return;
     if (initialGame.player_x === currentUserId) return;
@@ -88,7 +102,7 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // intentional: run once on mount using initialGame snapshot
 
-  // Effect 2 — Realtime subscription
+  // Effect 3 — Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel(`ttt:${roomId}`)

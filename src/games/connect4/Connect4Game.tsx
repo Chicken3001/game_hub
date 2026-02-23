@@ -69,6 +69,20 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
       });
   }, [opponentId, supabase]);
 
+  // Effect: cancel waiting game when host navigates away
+  useEffect(() => {
+    if (initialGame.status !== 'waiting' || initialGame.player_1 !== currentUserId) return;
+    return () => {
+      supabase
+        .from('connect4_games')
+        .update({ status: 'cancelled' })
+        .eq('id', roomId)
+        .eq('status', 'waiting')
+        .then(() => {});
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentional: captures initialGame snapshot
+
   // Effect: join on mount
   useEffect(() => {
     if (initialGame.status !== 'waiting') return;
