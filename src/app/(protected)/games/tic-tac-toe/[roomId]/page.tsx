@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/Button';
@@ -19,6 +19,9 @@ export default async function TicTacToeRoomPage({
   ]);
 
   if (!game) notFound();
+
+  const TERMINAL = ['x_wins', 'o_wins', 'draw', 'cancelled'];
+  if (TERMINAL.includes(game.status)) redirect('/games/tic-tac-toe');
 
   return (
     <div className="flex flex-col gap-3">
