@@ -41,6 +41,11 @@ const GAME_COLORS: Record<string, { from: string; to: string; border: string }> 
     to: "to-blue-50",
     border: "border-indigo-300",
   },
+  "connect4": {
+    from: "from-rose-100",
+    to: "to-orange-50",
+    border: "border-rose-300",
+  },
 };
 
 const DEFAULT_COLORS = {
