@@ -35,18 +35,22 @@ export function Connect4Lobby({ userId }: Props) {
   // Fetch open games + creator usernames on mount
   useEffect(() => {
     const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-    supabase
-      .from('connect4_games')
-      .select('*')
-      .eq('status', 'waiting')
-      .gte('created_at', cutoff)
-      .order('created_at', { ascending: false })
-      .then(async ({ data }) => {
+    void (async () => {
+      try {
+        const { data } = await supabase
+          .from('connect4_games')
+          .select('*')
+          .eq('status', 'waiting')
+          .gte('created_at', cutoff)
+          .order('created_at', { ascending: false });
         const rows = (data as Connect4GameRow[]) ?? [];
         setGames(rows);
-        setLoading(false);
         await fetchUsernames([...new Set(rows.map(g => g.player_1))]);
-      });
+        setLoading(false);
+      } catch {
+        setLoading(false);
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

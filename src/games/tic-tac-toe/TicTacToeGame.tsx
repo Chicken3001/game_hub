@@ -145,12 +145,17 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
   // Effect 5 — cancel game and redirect when countdown expires
   useEffect(() => {
     if (countdown !== 0) return;
-    supabase
-      .from('tic_tac_toe_games')
-      .update({ status: 'cancelled' })
-      .eq('id', roomId)
-      .eq('status', 'active')
-      .then(() => router.push('/games/tic-tac-toe'));
+    void (async () => {
+      try {
+        await supabase
+          .from('tic_tac_toe_games')
+          .update({ status: 'cancelled' })
+          .eq('id', roomId)
+          .eq('status', 'active');
+      } finally {
+        router.push('/games/tic-tac-toe');
+      }
+    })();
   }, [countdown, roomId, router, supabase]);
 
   // Effect 6 — Realtime subscription
@@ -173,18 +178,22 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
 
   async function handleRematch() {
     setRematching(true);
-    await supabase
-      .from('tic_tac_toe_games')
-      .update({ status: 'cancelled' })
-      .eq('player_x', currentUserId)
-      .eq('status', 'waiting');
-    const { data } = await supabase
-      .from('tic_tac_toe_games')
-      .insert({ player_x: currentUserId })
-      .select()
-      .single();
-    if (data) router.push(`/games/tic-tac-toe/${data.id}`);
-    else router.push('/games/tic-tac-toe');
+    try {
+      await supabase
+        .from('tic_tac_toe_games')
+        .update({ status: 'cancelled' })
+        .eq('player_x', currentUserId)
+        .eq('status', 'waiting');
+      const { data } = await supabase
+        .from('tic_tac_toe_games')
+        .insert({ player_x: currentUserId })
+        .select()
+        .single();
+      if (data) router.push(`/games/tic-tac-toe/${data.id}`);
+      else router.push('/games/tic-tac-toe');
+    } finally {
+      setRematching(false);
+    }
   }
 
   async function handleCellClick(i: number) {
@@ -205,7 +214,7 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
       current_turn: newStatus === 'active' ? (mySymbol === 'X' ? 'O' : 'X') : g.current_turn,
     }));
 
-    await supabase
+    const { error } = await supabase
       .from('tic_tac_toe_games')
       .update({
         board: newBoard,
@@ -215,6 +224,16 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
       .eq('id', roomId)
       .eq('current_turn', mySymbol!)
       .eq('status', 'active');
+
+    if (error) {
+      // Re-fetch authoritative state to correct the optimistic update
+      supabase
+        .from('tic_tac_toe_games')
+        .select('*')
+        .eq('id', roomId)
+        .single()
+        .then(({ data: r }) => { if (r) setGame(r as TicTacToeGameRow); });
+    }
   }
 
   if (game.status === 'cancelled') {

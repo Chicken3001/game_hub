@@ -35,18 +35,22 @@ export function TicTacToeLobby({ userId }: Props) {
   // Fetch open games + their creators' usernames on mount
   useEffect(() => {
     const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-    supabase
-      .from('tic_tac_toe_games')
-      .select('*')
-      .eq('status', 'waiting')
-      .gte('created_at', cutoff)
-      .order('created_at', { ascending: false })
-      .then(async ({ data }) => {
+    void (async () => {
+      try {
+        const { data } = await supabase
+          .from('tic_tac_toe_games')
+          .select('*')
+          .eq('status', 'waiting')
+          .gte('created_at', cutoff)
+          .order('created_at', { ascending: false });
         const rows = (data as TicTacToeGameRow[]) ?? [];
         setGames(rows);
-        setLoading(false);
         await fetchUsernames([...new Set(rows.map(g => g.player_x))]);
-      });
+        setLoading(false);
+      } catch {
+        setLoading(false);
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -157,12 +157,17 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
   // Effect: cancel game and redirect when countdown expires
   useEffect(() => {
     if (countdown !== 0) return;
-    supabase
-      .from('connect4_games')
-      .update({ status: 'cancelled' })
-      .eq('id', roomId)
-      .eq('status', 'active')
-      .then(() => router.push('/games/connect4'));
+    void (async () => {
+      try {
+        await supabase
+          .from('connect4_games')
+          .update({ status: 'cancelled' })
+          .eq('id', roomId)
+          .eq('status', 'active');
+      } finally {
+        router.push('/games/connect4');
+      }
+    })();
   }, [countdown, roomId, router, supabase]);
 
   // Effect: realtime subscription
@@ -185,18 +190,22 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
 
   async function handleRematch() {
     setRematching(true);
-    await supabase
-      .from('connect4_games')
-      .update({ status: 'cancelled' })
-      .eq('player_1', currentUserId)
-      .eq('status', 'waiting');
-    const { data } = await supabase
-      .from('connect4_games')
-      .insert({ player_1: currentUserId })
-      .select()
-      .single();
-    if (data) router.push(`/games/connect4/${data.id}`);
-    else router.push('/games/connect4');
+    try {
+      await supabase
+        .from('connect4_games')
+        .update({ status: 'cancelled' })
+        .eq('player_1', currentUserId)
+        .eq('status', 'waiting');
+      const { data } = await supabase
+        .from('connect4_games')
+        .insert({ player_1: currentUserId })
+        .select()
+        .single();
+      if (data) router.push(`/games/connect4/${data.id}`);
+      else router.push('/games/connect4');
+    } finally {
+      setRematching(false);
+    }
   }
 
   async function handleColumnClick(col: number) {
@@ -219,7 +228,7 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
       current_turn: newStatus === 'active' ? (myPlayer === 1 ? 2 : 1) : g.current_turn,
     }));
 
-    await supabase
+    const { error } = await supabase
       .from('connect4_games')
       .update({
         board: newBoard,
@@ -229,6 +238,16 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
       .eq('id', roomId)
       .eq('current_turn', myPlayer!)
       .eq('status', 'active');
+
+    if (error) {
+      // Re-fetch authoritative state to correct the optimistic update
+      supabase
+        .from('connect4_games')
+        .select('*')
+        .eq('id', roomId)
+        .single()
+        .then(({ data: r }) => { if (r) setGame(r as Connect4GameRow); });
+    }
   }
 
   if (game.status === 'cancelled') {
