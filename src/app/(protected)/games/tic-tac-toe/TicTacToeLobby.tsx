@@ -13,21 +13,40 @@ export function TicTacToeLobby({ userId }: Props) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const [games, setGames] = useState<TicTacToeGameRow[]>([]);
+  const [usernames, setUsernames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
-  // Fetch open games on mount
+  async function fetchUsernames(ids: string[]) {
+    if (ids.length === 0) return;
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, username')
+      .in('id', ids);
+    if (data) {
+      setUsernames(prev => {
+        const next = { ...prev };
+        data.forEach((p: { id: string; username: string }) => { next[p.id] = p.username; });
+        return next;
+      });
+    }
+  }
+
+  // Fetch open games + their creators' usernames on mount
   useEffect(() => {
     supabase
       .from('tic_tac_toe_games')
       .select('*')
       .eq('status', 'waiting')
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
-        setGames((data as TicTacToeGameRow[]) ?? []);
+      .then(async ({ data }) => {
+        const rows = (data as TicTacToeGameRow[]) ?? [];
+        setGames(rows);
         setLoading(false);
+        await fetchUsernames([...new Set(rows.map(g => g.player_x))]);
       });
-  }, [supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Realtime: add new waiting games, remove games that are no longer waiting
   useEffect(() => {
@@ -36,10 +55,11 @@ export function TicTacToeLobby({ userId }: Props) {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'tic_tac_toe_games' },
-        (payload) => {
+        async (payload) => {
           const game = payload.new as TicTacToeGameRow;
           if (game.status === 'waiting') {
             setGames(prev => [game, ...prev]);
+            await fetchUsernames([game.player_x]);
           }
         }
       )
@@ -57,6 +77,7 @@ export function TicTacToeLobby({ userId }: Props) {
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase]);
 
   async function handleCreate() {
@@ -76,6 +97,11 @@ export function TicTacToeLobby({ userId }: Props) {
     if (!error && data) {
       router.push(`/games/tic-tac-toe/${data.id}`);
     }
+  }
+
+  function displayName(game: TicTacToeGameRow) {
+    if (game.player_x === userId) return '⭐ You';
+    return `🎮 ${usernames[game.player_x] ?? 'Someone'}`;
   }
 
   return (
@@ -104,9 +130,7 @@ export function TicTacToeLobby({ userId }: Props) {
             className="flex items-center justify-between rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 shadow-sm"
           >
             <div>
-              <p className="font-black text-slate-800">
-                {game.player_x === userId ? '⭐ Your Game' : '🎮 Open Game'}
-              </p>
+              <p className="font-black text-slate-800">{displayName(game)}</p>
               <p className="text-xs text-slate-400">
                 {new Date(game.created_at).toLocaleTimeString()}
               </p>
