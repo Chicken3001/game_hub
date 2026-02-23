@@ -154,10 +154,16 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
     return () => clearInterval(id);
   }, [opponentGone]);
 
-  // Effect: redirect when countdown expires
+  // Effect: cancel game and redirect when countdown expires
   useEffect(() => {
-    if (countdown === 0) router.push('/games/connect4');
-  }, [countdown, router]);
+    if (countdown !== 0) return;
+    supabase
+      .from('connect4_games')
+      .update({ status: 'cancelled' })
+      .eq('id', roomId)
+      .eq('status', 'active')
+      .then(() => router.push('/games/connect4'));
+  }, [countdown, roomId, router, supabase]);
 
   // Effect: realtime subscription
   useEffect(() => {

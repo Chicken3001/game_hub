@@ -142,10 +142,16 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
     return () => clearInterval(id);
   }, [opponentGone]);
 
-  // Effect 5 — redirect when countdown expires
+  // Effect 5 — cancel game and redirect when countdown expires
   useEffect(() => {
-    if (countdown === 0) router.push('/games/tic-tac-toe');
-  }, [countdown, router]);
+    if (countdown !== 0) return;
+    supabase
+      .from('tic_tac_toe_games')
+      .update({ status: 'cancelled' })
+      .eq('id', roomId)
+      .eq('status', 'active')
+      .then(() => router.push('/games/tic-tac-toe'));
+  }, [countdown, roomId, router, supabase]);
 
   // Effect 6 — Realtime subscription
   useEffect(() => {
