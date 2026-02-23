@@ -44,6 +44,9 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
   const [game, setGame] = useState(initialGame);
   const [joining, setJoining] = useState(false);
   const [opponentUsername, setOpponentUsername] = useState<string | null>(null);
+  const [opponentGone, setOpponentGone] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const DISCONNECT_TIMEOUT = 30;
 
   const myPlayer: PlayerNumber | null =
     game.player_1 === currentUserId ? 1
@@ -112,6 +115,48 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // intentional: run once on mount using initialGame snapshot
+
+  // Effect: presence — detect when opponent disconnects/reconnects
+  useEffect(() => {
+    if (!myPlayer || game.status !== 'active') return;
+    const channel = supabase
+      .channel(`presence:c4:${roomId}`)
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        if ((leftPresences as Array<{ userId: string }>).some(p => p.userId === opponentId)) {
+          setOpponentGone(true);
+        }
+      })
+      .on('presence', { event: 'join' }, ({ newPresences }) => {
+        if ((newPresences as Array<{ userId: string }>).some(p => p.userId === opponentId)) {
+          setOpponentGone(false);
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ userId: currentUserId });
+        }
+      });
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game.status, myPlayer]); // stable after game goes active; intentional snapshot of opponentId/currentUserId
+
+  // Effect: start/stop countdown when opponentGone changes
+  useEffect(() => {
+    if (!opponentGone) {
+      setCountdown(null);
+      return;
+    }
+    setCountdown(DISCONNECT_TIMEOUT);
+    const id = setInterval(() => {
+      setCountdown(n => (n !== null && n > 1 ? n - 1 : 0));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [opponentGone]);
+
+  // Effect: redirect when countdown expires
+  useEffect(() => {
+    if (countdown === 0) router.push('/games/connect4');
+  }, [countdown, router]);
 
   // Effect: realtime subscription
   useEffect(() => {
@@ -213,6 +258,22 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
           <div className="text-5xl">👀</div>
           <p className="text-xl font-black text-amber-800">This game is full</p>
           <p className="text-sm font-semibold text-amber-600">You are spectating</p>
+        </div>
+      )}
+
+      {/* Opponent disconnect warning */}
+      {opponentGone && !gameOver && !isSpectator && countdown !== null && (
+        <div className="flex flex-col items-center gap-2 rounded-3xl border-2 border-amber-300 bg-amber-50 px-6 py-5 text-center shadow-md w-full max-w-sm">
+          <p className="text-lg font-black text-amber-800">⚠️ Opponent disconnected</p>
+          <p className="text-sm font-semibold text-amber-600">
+            Returning to lobby in {countdown}s…
+          </p>
+          <button
+            onClick={() => router.push('/games/connect4')}
+            className="mt-1 rounded-2xl border-2 border-amber-400 bg-amber-500 px-6 py-2 text-sm font-black text-white shadow transition hover:bg-amber-600 active:scale-95"
+          >
+            Return Now
+          </button>
         </div>
       )}
 
