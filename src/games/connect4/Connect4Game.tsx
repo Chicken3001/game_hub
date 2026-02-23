@@ -122,12 +122,12 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
     const channel = supabase
       .channel(`presence:c4:${roomId}`)
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        if ((leftPresences as Array<{ userId: string }>).some(p => p.userId === opponentId)) {
+        if ((leftPresences as unknown as Array<{ userId: string }>).some(p => p.userId === opponentId)) {
           setOpponentGone(true);
         }
       })
       .on('presence', { event: 'join' }, ({ newPresences }) => {
-        if ((newPresences as Array<{ userId: string }>).some(p => p.userId === opponentId)) {
+        if ((newPresences as unknown as Array<{ userId: string }>).some(p => p.userId === opponentId)) {
           setOpponentGone(false);
         }
       })
