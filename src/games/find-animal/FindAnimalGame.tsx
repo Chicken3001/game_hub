@@ -63,6 +63,7 @@ export function FindAnimalGame() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     startGame();
   }, [startGame]);
 

@@ -35,16 +35,16 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
   }, [animals]);
 
   const [selected, setSelected] = useState<{ side: "left" | "right"; index: number } | null>(null);
+  const [selectedCenter, setSelectedCenter] = useState<{ x: number; y: number } | null>(null);
   const [matched, setMatched] = useState<MatchedPair[]>([]);
   const [wrongPair, setWrongPair] = useState<WrongPair | null>(null);
   const [tries, setTries] = useState(0);
-  const [pointer, setPointer] = useState<{ x: number; y: number } | null>(null);
+  const [pointerLocal, setPointerLocal] = useState<{ x: number; y: number } | null>(null);
   const [lines, setLines] = useState<{ x1: number; y1: number; x2: number; y2: number; color: string }[]>([]);
   const [gameWon, setGameWon] = useState(false);
 
   const leftRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const rightRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const justMatchedRef = useRef(false);
 
@@ -109,16 +109,20 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
       if (isMatched) return;
 
       // Nothing selected yet → select this card
+      // Reading refs here is fine — this is an event handler, not render
       if (!selected) {
+        const el = side === "left" ? leftRefs.current[index] ?? null : rightRefs.current[index] ?? null;
+        setSelectedCenter(getCenter(el));
         setSelected({ side, index });
-        setPointer(null);
+        setPointerLocal(null);
         return;
       }
 
       // Tapped the same card again → deselect
       if (selected.side === side && selected.index === index) {
         setSelected(null);
-        setPointer(null);
+        setSelectedCenter(null);
+        setPointerLocal(null);
         return;
       }
 
@@ -127,18 +131,24 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
       setTries((t) => t + 1);
       tryMatch(selected.side, selected.index, side, index);
       setSelected(null);
-      setPointer(null);
+      setSelectedCenter(null);
+      setPointerLocal(null);
     },
-    [selected, matched, tryMatch]
+    [selected, matched, tryMatch, getCenter]
   );
 
   useEffect(() => {
     if (!selected) return;
 
-    const onMove = (e: PointerEvent) => setPointer({ x: e.clientX, y: e.clientY });
+    const onMove = (e: PointerEvent) => {
+      if (containerRef.current) {
+        const cr = containerRef.current.getBoundingClientRect();
+        setPointerLocal({ x: e.clientX - cr.left, y: e.clientY - cr.top });
+      }
+    };
 
     const onUp = (e: PointerEvent) => {
-      setPointer(null);
+      setPointerLocal(null);
 
       if (justMatchedRef.current) {
         // handleCardTap already handled the match and cleared selection
@@ -184,17 +194,10 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
     };
   }, [selected, tryMatch]);
 
-  const selectedCenter = selected
-    ? getCenter(
-        selected.side === "left"
-          ? leftRefs.current[selected.index] ?? null
-          : rightRefs.current[selected.index] ?? null
-      )
-    : null;
-
   const reset = () => {
     setSelected(null);
-    setPointer(null);
+    setSelectedCenter(null);
+    setPointerLocal(null);
     setMatched([]);
     setWrongPair(null);
     setTries(0);
@@ -335,7 +338,6 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
       >
         {/* SVG lines */}
         <svg
-          ref={svgRef}
           className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
           style={{ zIndex: 5 }}
         >
@@ -364,38 +366,31 @@ export function AnimalMatchGame({ set }: { set: AnimalSet }) {
             />
           ))}
 
-          {/* Drag preview line */}
-          {selectedCenter &&
-            pointer &&
-            svgRef.current &&
-            (() => {
-              const pt = svgRef.current!.createSVGPoint();
-              pt.x = pointer.x;
-              pt.y = pointer.y;
-              const p = pt.matrixTransform(svgRef.current!.getScreenCTM()?.inverse());
-              return (
-                <line
-                  x1={selectedCenter.x}
-                  y1={selectedCenter.y}
-                  x2={p.x}
-                  y2={p.y}
-                  stroke="#fbbf24"
-                  strokeWidth="4"
-                  strokeDasharray="10 7"
-                  strokeLinecap="round"
-                  opacity="0.8"
-                />
-              );
-            })()}
+          {/* Drag preview line — coords are already container-relative */}
+          {selectedCenter && pointerLocal && (
+            <line
+              x1={selectedCenter.x}
+              y1={selectedCenter.y}
+              x2={pointerLocal.x}
+              y2={pointerLocal.y}
+              stroke="#fbbf24"
+              strokeWidth="4"
+              strokeDasharray="10 7"
+              strokeLinecap="round"
+              opacity="0.8"
+            />
+          )}
         </svg>
 
         {/* Left column */}
         <div className="flex flex-col gap-2">
+          {/* eslint-disable-next-line react-hooks/refs */}
           {leftCards.map((animal, i) => renderCard("left", animal, i, leftRefs))}
         </div>
 
         {/* Right column */}
         <div className="flex flex-col gap-2">
+          {/* eslint-disable-next-line react-hooks/refs */}
           {rightCards.map((animal, i) => renderCard("right", animal, i, rightRefs))}
         </div>
       </div>

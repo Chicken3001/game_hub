@@ -13,7 +13,12 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/hub";
+  const rawRedirect = searchParams.get("redirect") ?? "";
+  // Only allow same-origin relative paths; reject absolute URLs and protocol-relative URLs
+  const redirectTo =
+    rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : "/hub";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

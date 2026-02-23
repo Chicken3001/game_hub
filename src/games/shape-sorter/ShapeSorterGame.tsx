@@ -109,6 +109,7 @@ export function ShapeSorterGame() {
   const binRefs = useRef<Partial<Record<ShapeType, HTMLDivElement>>>({});
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     setQueue(makeQueue());
   }, []);
