@@ -42,4 +42,11 @@ export const GAMES: GameEntry[] = [
     path: "/games/animal-match",
     icon: "🐾",
   },
+  {
+    id: "shape-sorter",
+    name: "Shape Sorter",
+    description: "Drag each shape into the right bin — can you sort them all?",
+    path: "/games/shape-sorter",
+    icon: "🔷",
+  },
 ];

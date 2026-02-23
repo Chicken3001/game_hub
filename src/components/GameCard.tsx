@@ -31,6 +31,11 @@ const GAME_COLORS: Record<string, { from: string; to: string; border: string }> 
     to: "to-amber-50",
     border: "border-orange-300",
   },
+  "shape-sorter": {
+    from: "from-purple-100",
+    to: "to-violet-50",
+    border: "border-purple-300",
+  },
 };
 
 const DEFAULT_COLORS = {

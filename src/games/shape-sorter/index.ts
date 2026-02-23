@@ -1,0 +1,1 @@
+export { ShapeSorterGame } from "./ShapeSorterGame";

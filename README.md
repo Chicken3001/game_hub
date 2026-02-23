@@ -48,8 +48,12 @@ After creating a user in Supabase, they log in at `/login`. On first visit, they
 
 ## Games
 
-- **Farm Animal Match** – Match pairs of farm animal emojis
-- **Number Guessing** – Guess a number between 1 and 100
+- **Find the Animal!** – Spot the correct animal from 3 choices across 6 rounds
+- **Bubble Pop!** – Tap floating bubbles before they drift away (30-second sprint)
+- **Animal Memory Match** – Flip cards to find all matching pairs
+- **Number Guessing** – Guess a number between 1 and 100 with higher/lower hints
+- **Animal Match** – Drag to connect matching animal pairs side by side
+- **Shape Sorter** – Drag each shape into the right bin (circle, square, triangle, star)
 
 ## Tech stack
 
@@ -64,7 +68,7 @@ After creating a user in Supabase, they log in at `/login`. On first visit, they
 - `src/app/(protected)/profile` – Username and profile
 - `src/app/(protected)/games/*` – Individual game pages
 - `src/components/ui/` – Shared UI primitives (Button, Card, Input, Modal)
-- `src/games/` – Game modules (registry + farm-match, number-guess)
+- `src/games/` – Game modules (registry + find-animal, bubble-pop, farm-match, number-guess, animal-match, shape-sorter)
 - `supabase/migrations/` – SQL for `profiles` table and RLS
 
 See `PLAN.md` for the full design and roadmap.
