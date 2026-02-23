@@ -62,7 +62,14 @@ export function GameCard({ game }: GameCardProps) {
       <div
         className={`rounded-3xl border-2 ${colors.border} bg-gradient-to-br ${colors.from} ${colors.to} p-4 shadow-md transition-all duration-200 hover:scale-[1.04] hover:-rotate-1 hover:shadow-xl cursor-pointer`}
       >
-        <div className="text-5xl leading-none">{game.icon ?? "🎮"}</div>
+        <div className="flex items-start justify-between">
+          <div className="text-5xl leading-none">{game.icon ?? "🎮"}</div>
+          {game.multiplayer && (
+            <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs font-black text-indigo-600 border border-indigo-200">
+              👥 2 players
+            </span>
+          )}
+        </div>
         <h2 className="mt-3 text-lg font-black text-indigo-900">{game.name}</h2>
         <p className="mt-1 text-sm font-semibold text-indigo-600">{game.description}</p>
       </div>

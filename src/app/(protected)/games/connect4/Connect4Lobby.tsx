@@ -34,10 +34,12 @@ export function Connect4Lobby({ userId }: Props) {
 
   // Fetch open games + creator usernames on mount
   useEffect(() => {
+    const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
     supabase
       .from('connect4_games')
       .select('*')
       .eq('status', 'waiting')
+      .gte('created_at', cutoff)
       .order('created_at', { ascending: false })
       .then(async ({ data }) => {
         const rows = (data as Connect4GameRow[]) ?? [];
@@ -57,7 +59,8 @@ export function Connect4Lobby({ userId }: Props) {
         { event: 'INSERT', schema: 'public', table: 'connect4_games' },
         async (payload) => {
           const game = payload.new as Connect4GameRow;
-          if (game.status === 'waiting') {
+          const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+          if (game.status === 'waiting' && game.created_at >= cutoff) {
             setGames(prev => [game, ...prev]);
             await fetchUsernames([game.player_1]);
           }

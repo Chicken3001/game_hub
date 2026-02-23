@@ -4,6 +4,7 @@ export interface GameEntry {
   description: string;
   path: string;
   icon?: string;
+  multiplayer?: boolean;
 }
 
 export const GAMES: GameEntry[] = [
@@ -55,6 +56,7 @@ export const GAMES: GameEntry[] = [
     description: "Challenge a friend! Share a link and play in real time.",
     path: "/games/tic-tac-toe",
     icon: "❌",
+    multiplayer: true,
   },
   {
     id: "connect4",
@@ -62,5 +64,6 @@ export const GAMES: GameEntry[] = [
     description: "Drop your discs and connect four in a row before your opponent!",
     path: "/games/connect4",
     icon: "🔴",
+    multiplayer: true,
   },
 ];

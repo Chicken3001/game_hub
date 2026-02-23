@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 
+const USERNAME_RE = /^[a-zA-Z0-9_-]{2,20}$/;
+
 export default function ProfilePage() {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(true);
@@ -42,6 +44,13 @@ export default function ProfilePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    const trimmed = username.trim();
+    if (!USERNAME_RE.test(trimmed)) {
+      setError("Use 2–20 characters: letters, numbers, _ or -");
+      return;
+    }
+
     setSaving(true);
 
     const {
@@ -56,7 +65,7 @@ export default function ProfilePage() {
     const { error: updateError } = await supabase
       .from("profiles")
       .upsert(
-        { id: user.id, username: username.trim() || null },
+        { id: user.id, username: trimmed },
         { onConflict: "id" }
       );
 
@@ -89,13 +98,17 @@ export default function ProfilePage() {
         <Input
           id="username"
           type="text"
-          placeholder="e.g. SuperStar123 or CoolKid"
+          placeholder="e.g. SuperStar123 or Cool_Kid"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          minLength={1}
-          maxLength={50}
+          minLength={2}
+          maxLength={20}
+          pattern="[a-zA-Z0-9_\-]+"
           required
         />
+        <p className="text-xs font-semibold text-slate-400 -mt-2">
+          2–20 characters: letters, numbers, _ or -
+        </p>
         {error && (
           <p className="text-sm text-red-600 font-medium" role="alert">
             Oops! {error}

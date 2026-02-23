@@ -30,6 +30,7 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
   const [game, setGame] = useState(initialGame);
   const [joining, setJoining] = useState(false);
   const [opponentUsername, setOpponentUsername] = useState<string | null>(null);
+  const [rematching, setRematching] = useState(false);
   const [opponentGone, setOpponentGone] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const DISCONNECT_TIMEOUT = 30;
@@ -163,6 +164,22 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [roomId, supabase]);
+
+  async function handleRematch() {
+    setRematching(true);
+    await supabase
+      .from('tic_tac_toe_games')
+      .update({ status: 'cancelled' })
+      .eq('player_x', currentUserId)
+      .eq('status', 'waiting');
+    const { data } = await supabase
+      .from('tic_tac_toe_games')
+      .insert({ player_x: currentUserId })
+      .select()
+      .single();
+    if (data) router.push(`/games/tic-tac-toe/${data.id}`);
+    else router.push('/games/tic-tac-toe');
+  }
 
   async function handleCellClick(i: number) {
     if (!isMyTurn || game.board[i] !== '' || game.status !== 'active') return;
@@ -327,12 +344,23 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
                   : game.status === 'x_wins' ? 'X wins!'
                   : 'O wins!'}
               </p>
-              <button
-                onClick={() => router.push('/games/tic-tac-toe')}
-                className="rounded-2xl border-2 border-indigo-300 bg-indigo-600 px-6 py-2 text-sm font-black text-white shadow transition hover:bg-indigo-700 active:scale-95"
-              >
-                Back to Lobby
-              </button>
+              <div className="flex gap-2 flex-wrap justify-center">
+                {!isSpectator && (
+                  <button
+                    onClick={handleRematch}
+                    disabled={rematching}
+                    className="rounded-2xl border-2 border-green-300 bg-green-500 px-5 py-2 text-sm font-black text-white shadow transition hover:bg-green-600 disabled:opacity-60 active:scale-95"
+                  >
+                    {rematching ? '⏳ Starting…' : '🔄 Rematch'}
+                  </button>
+                )}
+                <button
+                  onClick={() => router.push('/games/tic-tac-toe')}
+                  className="rounded-2xl border-2 border-indigo-300 bg-indigo-600 px-5 py-2 text-sm font-black text-white shadow transition hover:bg-indigo-700 active:scale-95"
+                >
+                  Lobby
+                </button>
+              </div>
             </div>
           )}
         </div>

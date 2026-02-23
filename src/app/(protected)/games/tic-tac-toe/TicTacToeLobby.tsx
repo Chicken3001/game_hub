@@ -34,10 +34,12 @@ export function TicTacToeLobby({ userId }: Props) {
 
   // Fetch open games + their creators' usernames on mount
   useEffect(() => {
+    const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
     supabase
       .from('tic_tac_toe_games')
       .select('*')
       .eq('status', 'waiting')
+      .gte('created_at', cutoff)
       .order('created_at', { ascending: false })
       .then(async ({ data }) => {
         const rows = (data as TicTacToeGameRow[]) ?? [];
@@ -57,7 +59,8 @@ export function TicTacToeLobby({ userId }: Props) {
         { event: 'INSERT', schema: 'public', table: 'tic_tac_toe_games' },
         async (payload) => {
           const game = payload.new as TicTacToeGameRow;
-          if (game.status === 'waiting') {
+          const cutoff = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+          if (game.status === 'waiting' && game.created_at >= cutoff) {
             setGames(prev => [game, ...prev]);
             await fetchUsernames([game.player_x]);
           }

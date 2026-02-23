@@ -44,6 +44,7 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
   const [game, setGame] = useState(initialGame);
   const [joining, setJoining] = useState(false);
   const [opponentUsername, setOpponentUsername] = useState<string | null>(null);
+  const [rematching, setRematching] = useState(false);
   const [opponentGone, setOpponentGone] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const DISCONNECT_TIMEOUT = 30;
@@ -175,6 +176,22 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [roomId, supabase]);
+
+  async function handleRematch() {
+    setRematching(true);
+    await supabase
+      .from('connect4_games')
+      .update({ status: 'cancelled' })
+      .eq('player_1', currentUserId)
+      .eq('status', 'waiting');
+    const { data } = await supabase
+      .from('connect4_games')
+      .insert({ player_1: currentUserId })
+      .select()
+      .single();
+    if (data) router.push(`/games/connect4/${data.id}`);
+    else router.push('/games/connect4');
+  }
 
   async function handleColumnClick(col: number) {
     const row = dropRow(game.board, col);
@@ -357,12 +374,23 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
                   : game.status === 'p1_wins' ? 'Red wins!'
                   : 'Yellow wins!'}
               </p>
-              <button
-                onClick={() => router.push('/games/connect4')}
-                className="rounded-2xl border-2 border-rose-300 bg-rose-600 px-6 py-2 text-sm font-black text-white shadow transition hover:bg-rose-700 active:scale-95"
-              >
-                Back to Lobby
-              </button>
+              <div className="flex gap-2 flex-wrap justify-center">
+                {!isSpectator && (
+                  <button
+                    onClick={handleRematch}
+                    disabled={rematching}
+                    className="rounded-2xl border-2 border-green-300 bg-green-500 px-5 py-2 text-sm font-black text-white shadow transition hover:bg-green-600 disabled:opacity-60 active:scale-95"
+                  >
+                    {rematching ? '⏳ Starting…' : '🔄 Rematch'}
+                  </button>
+                )}
+                <button
+                  onClick={() => router.push('/games/connect4')}
+                  className="rounded-2xl border-2 border-rose-300 bg-rose-600 px-5 py-2 text-sm font-black text-white shadow transition hover:bg-rose-700 active:scale-95"
+                >
+                  Lobby
+                </button>
+              </div>
             </div>
           )}
         </div>
