@@ -8,6 +8,20 @@ export interface GameEntry {
 
 export const GAMES: GameEntry[] = [
   {
+    id: "find-animal",
+    name: "Find the Animal!",
+    description: "Can you spot the right animal? Tap it to find all 6!",
+    path: "/games/find-animal",
+    icon: "🔍",
+  },
+  {
+    id: "bubble-pop",
+    name: "Bubble Pop!",
+    description: "Tap the floating bubbles before they float away!",
+    path: "/games/bubble-pop",
+    icon: "🫧",
+  },
+  {
     id: "farm-match",
     name: "Animal Memory Match",
     description: "Flip the cards and find all the matching pairs from memory!",

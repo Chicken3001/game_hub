@@ -65,3 +65,30 @@ button:disabled, [aria-disabled="true"] {
   0%   { opacity: 0; transform: translateY(10px) scale(0.95); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-10px); }
+  40%       { transform: translateX(10px); }
+  60%       { transform: translateX(-7px); }
+  80%       { transform: translateX(7px); }
+}
+
+@keyframes celebrate-bounce {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25%       { transform: scale(1.2) rotate(-6deg); }
+  75%       { transform: scale(1.15) rotate(6deg); }
+}
+
+@keyframes bubble-rise {
+  from       { top: 110%; opacity: 0.95; }
+  8%         { opacity: 1; }
+  85%        { opacity: 1; }
+  to         { top: -25%; opacity: 0; }
+}
+
+@keyframes bubble-pop {
+  0%   { transform: scale(1);   opacity: 1; }
+  55%  { transform: scale(1.6); opacity: 0.7; }
+  100% { transform: scale(0);   opacity: 0; }
+}
