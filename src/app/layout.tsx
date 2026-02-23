@@ -11,6 +11,10 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "Game Hub",
   description: "A hub of small, fun games",
+  appleWebApp: {
+    title: "Game Hub",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export default function RootLayout({
