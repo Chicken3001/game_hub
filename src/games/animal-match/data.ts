@@ -51,6 +51,19 @@ export const ANIMAL_SETS: AnimalSet[] = [
       { emoji: "🐧", name: "Penguin", color: "#1E40AF" },
     ],
   },
+  {
+    id: "jungle",
+    name: "Jungle Animals",
+    icon: "🐯",
+    animals: [
+      { emoji: "🐯", name: "Tiger", color: "#EA580C" },
+      { emoji: "🦍", name: "Gorilla", color: "#57534E" },
+      { emoji: "🐊", name: "Crocodile", color: "#15803D" },
+      { emoji: "🐍", name: "Snake", color: "#0D9488" },
+      { emoji: "🐸", name: "Frog", color: "#65A30D" },
+      { emoji: "🐆", name: "Leopard", color: "#D97706" },
+    ],
+  },
 ];
 
 const PAIR_COLORS = [
