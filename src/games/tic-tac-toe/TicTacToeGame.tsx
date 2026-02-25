@@ -33,6 +33,7 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
   const [rematching, setRematching] = useState(false);
   const [opponentGone, setOpponentGone] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [lastMove, setLastMove] = useState<number | null>(null);
   const DISCONNECT_TIMEOUT = 30;
 
   const mySymbol: PlayerSymbol | null =
@@ -170,7 +171,13 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
           table: 'tic_tac_toe_games',
           filter: `id=eq.${roomId}`,
         },
-        (payload) => setGame(payload.new as TicTacToeGameRow)
+        (payload) => {
+          const newGame = payload.new as TicTacToeGameRow;
+          const oldBoard = (payload.old as TicTacToeGameRow).board;
+          const idx = newGame.board.findIndex((v, i) => v !== oldBoard[i]);
+          if (idx !== -1) setLastMove(idx);
+          setGame(newGame);
+        }
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -213,6 +220,7 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
       status: newStatus,
       current_turn: newStatus === 'active' ? (mySymbol === 'X' ? 'O' : 'X') : g.current_turn,
     }));
+    setLastMove(i);
 
     const { error } = await supabase
       .from('tic_tac_toe_games')
@@ -333,6 +341,7 @@ export function TicTacToeGame({ initialGame, currentUserId, roomId }: Props) {
                   ${cell === '' && isMyTurn
                     ? 'border-indigo-200 bg-white hover:bg-indigo-50 hover:border-indigo-400 cursor-pointer active:scale-95'
                     : 'border-slate-200 bg-white/70 cursor-default'}
+                  ${lastMove === i && cell !== '' ? (cell === 'X' ? 'ring-2 ring-indigo-400 ring-offset-1' : 'ring-2 ring-rose-400 ring-offset-1') : ''}
                   ${gameOver ? 'opacity-80' : ''}
                 `}
               >

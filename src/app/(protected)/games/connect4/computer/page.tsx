@@ -28,6 +28,13 @@ const DIFFICULTIES: { value: Difficulty; label: string; emoji: string; descripti
     style: 'border-orange-400 bg-orange-500 hover:bg-orange-600',
   },
   {
+    value: 'very-hard',
+    label: 'Very Hard',
+    emoji: '🔥',
+    description: 'Looks 4 moves ahead',
+    style: 'border-red-500 bg-red-600 hover:bg-red-700',
+  },
+  {
     value: 'impossible',
     label: 'Impossible',
     emoji: '💀',

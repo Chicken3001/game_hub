@@ -47,6 +47,7 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
   const [rematching, setRematching] = useState(false);
   const [opponentGone, setOpponentGone] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [lastMove, setLastMove] = useState<number | null>(null);
   const DISCONNECT_TIMEOUT = 30;
 
   const myPlayer: PlayerNumber | null =
@@ -182,7 +183,13 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
           table: 'connect4_games',
           filter: `id=eq.${roomId}`,
         },
-        (payload) => setGame(payload.new as Connect4GameRow)
+        (payload) => {
+          const newGame = payload.new as Connect4GameRow;
+          const oldBoard = (payload.old as Connect4GameRow).board;
+          const idx = newGame.board.findIndex((v, i) => v !== oldBoard[i]);
+          if (idx !== -1) setLastMove(idx);
+          setGame(newGame);
+        }
       )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -227,6 +234,7 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
       status: newStatus,
       current_turn: newStatus === 'active' ? (myPlayer === 1 ? 2 : 1) : g.current_turn,
     }));
+    setLastMove(row * COLS + col);
 
     const { error } = await supabase
       .from('connect4_games')
@@ -367,6 +375,7 @@ export function Connect4Game({ initialGame, currentUserId, roomId }: Props) {
                         ${isMyTurn && cell === 0 && !colFull && game.status === 'active'
                           ? 'cursor-pointer hover:opacity-80 active:scale-95'
                           : 'cursor-default'}
+                        ${lastMove === row * COLS + col && cell !== 0 ? 'ring-2 ring-white/90' : ''}
                       `}
                     />
                   );

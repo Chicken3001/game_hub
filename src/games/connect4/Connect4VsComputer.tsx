@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export type Difficulty = 'easy' | 'medium' | 'hard' | 'impossible';
+export type Difficulty = 'easy' | 'medium' | 'hard' | 'very-hard' | 'impossible';
 
-const DEPTH: Record<Difficulty, number> = { easy: 1, medium: 2, hard: 3, impossible: 5 };
+const DEPTH: Record<Difficulty, number> = { easy: 1, medium: 2, hard: 3, 'very-hard': 4, impossible: 5 };
 
 type CellValue = 0 | 1 | 2;
 
@@ -135,6 +135,7 @@ export function Connect4VsComputer({ difficulty, goFirst, onChangeSettings }: Pr
   const router = useRouter();
   const [board, setBoard] = useState<CellValue[]>([...EMPTY_BOARD]);
   const [isComputerTurn, setIsComputerTurn] = useState(!goFirst);
+  const [lastMove, setLastMove] = useState<number | null>(null);
   // goFirst=true  → human=1 (Red),    AI=2 (Yellow)
   // goFirst=false → human=2 (Yellow),  AI=1 (Red)
   const humanPlayer: 1 | 2 = goFirst ? 1 : 2;
@@ -147,17 +148,18 @@ export function Connect4VsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     if (!isComputerTurn || gameOver) return;
     const delay = difficulty === 'impossible' ? 600 : 400;
     const id = setTimeout(() => {
-      setBoard(prev => {
-        const next = prev.slice() as CellValue[];
-        const col = getBestMove(next, aiPlayer, DEPTH[difficulty]);
-        next[dropRow(next, col) * COLS + col] = aiPlayer;
-        return next;
-      });
+      // board snapshot is safe: isComputerTurn prevents human moves
+      const col = getBestMove(board, aiPlayer, DEPTH[difficulty]);
+      const row = dropRow(board, col);
+      const next = board.slice() as CellValue[];
+      next[row * COLS + col] = aiPlayer;
+      setBoard(next);
+      setLastMove(row * COLS + col);
       setIsComputerTurn(false);
     }, delay);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isComputerTurn, gameOver, difficulty]); // aiPlayer is stable per game instance
+  }, [isComputerTurn, gameOver, difficulty]); // board/aiPlayer snapshot intentional
 
   function handleColumnClick(col: number) {
     if (isComputerTurn || gameOver) return;
@@ -166,11 +168,13 @@ export function Connect4VsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     const next = board.slice() as CellValue[];
     next[row * COLS + col] = humanPlayer;
     setBoard(next);
+    setLastMove(row * COLS + col);
     if (checkWinner(next) === null) setIsComputerTurn(true);
   }
 
   function handleReplay() {
     setBoard([...EMPTY_BOARD]);
+    setLastMove(null);
     setIsComputerTurn(!goFirst);
   }
 
@@ -218,6 +222,7 @@ export function Connect4VsComputer({ difficulty, goFirst, onChangeSettings }: Pr
                     ${!isComputerTurn && cell === 0 && !colFull && !gameOver
                       ? 'cursor-pointer hover:opacity-80 active:scale-95'
                       : 'cursor-default'}
+                    ${lastMove === row * COLS + col && cell !== 0 ? 'ring-2 ring-white/90' : ''}
                   `}
                 />
               );

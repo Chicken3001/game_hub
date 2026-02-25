@@ -69,6 +69,7 @@ export function TicTacToeVsComputer() {
   const [goFirst, setGoFirst] = useState<boolean | null>(null);
   const [board, setBoard] = useState<CellValue[]>([...EMPTY_BOARD]);
   const [isComputerTurn, setIsComputerTurn] = useState(false);
+  const [lastMove, setLastMove] = useState<number | null>(null);
 
   // goFirst=true  → human=X, ai=O
   // goFirst=false → human=O, ai=X
@@ -81,17 +82,19 @@ export function TicTacToeVsComputer() {
   useEffect(() => {
     if (!isComputerTurn || gameOver || goFirst === null) return;
     const id = setTimeout(() => {
-      setBoard(prev => {
-        const next = [...prev];
-        const move = getBestMove(next, aiSymbol);
-        if (move === -1) return prev;
+      // board snapshot is safe here: isComputerTurn prevents human moves
+      const move = getBestMove(board, aiSymbol);
+      if (move !== -1) {
+        const next = [...board] as CellValue[];
         next[move] = aiSymbol;
-        return next;
-      });
+        setBoard(next);
+        setLastMove(move);
+      }
       setIsComputerTurn(false);
     }, 400);
     return () => clearTimeout(id);
-  }, [isComputerTurn, gameOver, goFirst, aiSymbol]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isComputerTurn, gameOver, goFirst, aiSymbol]); // board snapshot intentional
 
   function handleOrderSelect(first: boolean) {
     setGoFirst(first);
@@ -104,11 +107,13 @@ export function TicTacToeVsComputer() {
     const next = [...board] as CellValue[];
     next[i] = mySymbol;
     setBoard(next);
+    setLastMove(i);
     if (checkWinner(next) === null) setIsComputerTurn(true);
   }
 
   function handleReplay() {
     setBoard([...EMPTY_BOARD]);
+    setLastMove(null);
     setIsComputerTurn(goFirst === false);
   }
 
@@ -161,6 +166,7 @@ export function TicTacToeVsComputer() {
               ${cell === '' && !isComputerTurn && !gameOver
                 ? 'border-indigo-200 bg-white hover:bg-indigo-50 hover:border-indigo-400 cursor-pointer active:scale-95'
                 : 'border-slate-200 bg-white/70 cursor-default'}
+              ${lastMove === i && cell !== '' ? (cell === 'X' ? 'ring-2 ring-indigo-400 ring-offset-1' : 'ring-2 ring-rose-400 ring-offset-1') : ''}
               ${gameOver ? 'opacity-80' : ''}
             `}
           >
