@@ -10,22 +10,29 @@ const DIFFICULTIES: { value: Difficulty; label: string; emoji: string; descripti
     value: 'easy',
     label: 'Easy',
     emoji: '😊',
-    description: 'Computer plays randomly',
+    description: 'Looks 1 move ahead',
     style: 'border-green-300 bg-green-500 hover:bg-green-600',
   },
   {
     value: 'medium',
     label: 'Medium',
     emoji: '🤔',
-    description: 'Alternates between smart and random moves',
+    description: 'Looks 2 moves ahead',
     style: 'border-amber-300 bg-amber-500 hover:bg-amber-600',
   },
   {
     value: 'hard',
     label: 'Hard',
     emoji: '🧠',
-    description: 'Computer plays optimally',
-    style: 'border-rose-400 bg-rose-600 hover:bg-rose-700',
+    description: 'Looks 3 moves ahead',
+    style: 'border-orange-400 bg-orange-500 hover:bg-orange-600',
+  },
+  {
+    value: 'impossible',
+    label: 'Impossible',
+    emoji: '💀',
+    description: 'Plays optimally — good luck',
+    style: 'border-rose-500 bg-rose-700 hover:bg-rose-800',
   },
 ];
 

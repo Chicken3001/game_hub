@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export type Difficulty = 'easy' | 'medium' | 'hard';
+export type Difficulty = 'easy' | 'medium' | 'hard' | 'impossible';
+
+const DEPTH: Record<Difficulty, number> = { easy: 1, medium: 2, hard: 3, impossible: 5 };
 
 type CellValue = 0 | 1 | 2;
 
@@ -109,21 +111,16 @@ function minimax(board: CellValue[], depth: number, alpha: number, beta: number,
   }
 }
 
-function getBestMove(board: CellValue[], ai: 1 | 2): number {
+function getBestMove(board: CellValue[], ai: 1 | 2, depth: number): number {
   const cols = validCols(board);
   let bestVal = -Infinity, bestCol = cols[0];
   for (const col of cols) {
     const next = board.slice() as CellValue[];
     next[dropRow(next, col) * COLS + col] = ai;
-    const val = minimax(next, 5, -Infinity, Infinity, false, ai);
+    const val = minimax(next, depth - 1, -Infinity, Infinity, false, ai);
     if (val > bestVal) { bestVal = val; bestCol = col; }
   }
   return bestCol;
-}
-
-function getRandomMove(board: CellValue[]): number {
-  const cols = validCols(board);
-  return cols[Math.floor(Math.random() * cols.length)];
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -138,8 +135,6 @@ export function Connect4VsComputer({ difficulty, goFirst, onChangeSettings }: Pr
   const router = useRouter();
   const [board, setBoard] = useState<CellValue[]>([...EMPTY_BOARD]);
   const [isComputerTurn, setIsComputerTurn] = useState(!goFirst);
-  const computerMoves = useRef(0);
-
   // goFirst=true  → human=1 (Red),    AI=2 (Yellow)
   // goFirst=false → human=2 (Yellow),  AI=1 (Red)
   const humanPlayer: 1 | 2 = goFirst ? 1 : 2;
@@ -150,27 +145,19 @@ export function Connect4VsComputer({ difficulty, goFirst, onChangeSettings }: Pr
 
   useEffect(() => {
     if (!isComputerTurn || gameOver) return;
-    const delay = difficulty === 'hard' ? 600 : 400;
+    const delay = difficulty === 'impossible' ? 600 : 400;
     const id = setTimeout(() => {
       setBoard(prev => {
         const next = prev.slice() as CellValue[];
-        let col: number;
-        if (difficulty === 'easy') {
-          col = getRandomMove(next);
-        } else if (difficulty === 'medium') {
-          col = computerMoves.current % 2 === 0 ? getRandomMove(next) : getBestMove(next, aiPlayer);
-        } else {
-          col = getBestMove(next, aiPlayer);
-        }
+        const col = getBestMove(next, aiPlayer, DEPTH[difficulty]);
         next[dropRow(next, col) * COLS + col] = aiPlayer;
         return next;
       });
-      computerMoves.current += 1;
       setIsComputerTurn(false);
     }, delay);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isComputerTurn, gameOver, difficulty]); // aiPlayer/humanPlayer are stable per game instance
+  }, [isComputerTurn, gameOver, difficulty]); // aiPlayer is stable per game instance
 
   function handleColumnClick(col: number) {
     if (isComputerTurn || gameOver) return;
@@ -185,7 +172,6 @@ export function Connect4VsComputer({ difficulty, goFirst, onChangeSettings }: Pr
   function handleReplay() {
     setBoard([...EMPTY_BOARD]);
     setIsComputerTurn(!goFirst);
-    computerMoves.current = 0;
   }
 
   const iWon = winner === humanPlayer;
