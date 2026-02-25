@@ -120,6 +120,13 @@ export function Connect4Lobby({ userId }: Props) {
         {creating ? '⏳ Creating…' : '➕ Create New Game'}
       </button>
 
+      <button
+        onClick={() => router.push('/games/connect4/computer')}
+        className="w-full rounded-2xl border-2 border-slate-300 bg-white px-6 py-3 font-black text-slate-700 shadow transition hover:bg-slate-50 active:scale-95"
+      >
+        🤖 Play vs Computer
+      </button>
+
       <div className="flex flex-col gap-2">
         <h2 className="text-lg font-black text-slate-700">Open Lobbies</h2>
         {loading && (
