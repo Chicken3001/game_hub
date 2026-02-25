@@ -18,18 +18,20 @@ function checkWinner(b: CellValue[]): 'X' | 'O' | 'draw' | null {
   return b.every(v => v !== '') ? 'draw' : null;
 }
 
-function minimax(board: CellValue[], isMaximizing: boolean): number {
+// Minimax parameterised by which symbol the AI controls
+function minimax(board: CellValue[], isMaximizing: boolean, ai: 'X' | 'O'): number {
+  const human: 'X' | 'O' = ai === 'X' ? 'O' : 'X';
   const result = checkWinner(board);
-  if (result === 'O') return 10;
-  if (result === 'X') return -10;
+  if (result === ai) return 10;
+  if (result === human) return -10;
   if (result === 'draw') return 0;
 
   if (isMaximizing) {
     let best = -Infinity;
     for (let i = 0; i < 9; i++) {
       if (board[i] === '') {
-        board[i] = 'O';
-        best = Math.max(best, minimax(board, false));
+        board[i] = ai;
+        best = Math.max(best, minimax(board, false, ai));
         board[i] = '';
       }
     }
@@ -38,8 +40,8 @@ function minimax(board: CellValue[], isMaximizing: boolean): number {
     let best = Infinity;
     for (let i = 0; i < 9; i++) {
       if (board[i] === '') {
-        board[i] = 'X';
-        best = Math.min(best, minimax(board, true));
+        board[i] = human;
+        best = Math.min(best, minimax(board, true, ai));
         board[i] = '';
       }
     }
@@ -47,18 +49,14 @@ function minimax(board: CellValue[], isMaximizing: boolean): number {
   }
 }
 
-function getBestMove(board: CellValue[]): number {
-  let bestVal = -Infinity;
-  let bestMove = -1;
+function getBestMove(board: CellValue[], ai: 'X' | 'O'): number {
+  let bestVal = -Infinity, bestMove = -1;
   for (let i = 0; i < 9; i++) {
     if (board[i] === '') {
-      board[i] = 'O';
-      const val = minimax(board, false);
+      board[i] = ai;
+      const val = minimax(board, false, ai);
       board[i] = '';
-      if (val > bestVal) {
-        bestVal = val;
-        bestMove = i;
-      }
+      if (val > bestVal) { bestVal = val; bestMove = i; }
     }
   }
   return bestMove;
@@ -68,42 +66,77 @@ const EMPTY_BOARD: CellValue[] = Array(9).fill('');
 
 export function TicTacToeVsComputer() {
   const router = useRouter();
+  const [goFirst, setGoFirst] = useState<boolean | null>(null);
   const [board, setBoard] = useState<CellValue[]>([...EMPTY_BOARD]);
   const [isComputerTurn, setIsComputerTurn] = useState(false);
+
+  // goFirst=true  → human=X, ai=O
+  // goFirst=false → human=O, ai=X
+  const mySymbol: 'X' | 'O' = goFirst === false ? 'O' : 'X';
+  const aiSymbol: 'X' | 'O' = goFirst === false ? 'X' : 'O';
 
   const winner = checkWinner(board);
   const gameOver = winner !== null;
 
-  // Computer plays after a short delay so it feels natural
   useEffect(() => {
-    if (!isComputerTurn || gameOver) return;
+    if (!isComputerTurn || gameOver || goFirst === null) return;
     const id = setTimeout(() => {
       setBoard(prev => {
         const next = [...prev];
-        const move = getBestMove(next);
+        const move = getBestMove(next, aiSymbol);
         if (move === -1) return prev;
-        next[move] = 'O';
+        next[move] = aiSymbol;
         return next;
       });
       setIsComputerTurn(false);
     }, 400);
     return () => clearTimeout(id);
-  }, [isComputerTurn, gameOver]);
+  }, [isComputerTurn, gameOver, goFirst, aiSymbol]);
+
+  function handleOrderSelect(first: boolean) {
+    setGoFirst(first);
+    setBoard([...EMPTY_BOARD]);
+    setIsComputerTurn(!first);
+  }
 
   function handleCellClick(i: number) {
     if (isComputerTurn || gameOver || board[i] !== '') return;
     const next = [...board] as CellValue[];
-    next[i] = 'X';
+    next[i] = mySymbol;
     setBoard(next);
     if (checkWinner(next) === null) setIsComputerTurn(true);
   }
 
   function handleReplay() {
     setBoard([...EMPTY_BOARD]);
-    setIsComputerTurn(false);
+    setIsComputerTurn(goFirst === false);
   }
 
-  const iWon = winner === 'X';
+  // ── Order picker ─────────────────────────────────────────────────────────
+  if (goFirst === null) {
+    return (
+      <div className="flex flex-col gap-3">
+        <p className="text-center text-sm font-semibold text-slate-500">Who goes first?</p>
+        <button
+          onClick={() => handleOrderSelect(true)}
+          className="rounded-2xl border-2 border-indigo-400 bg-indigo-600 px-6 py-4 text-left shadow transition hover:bg-indigo-700 active:scale-95"
+        >
+          <p className="font-black text-white text-lg">❌ You go first</p>
+          <p className="text-sm text-indigo-200">You play X and make the first move</p>
+        </button>
+        <button
+          onClick={() => handleOrderSelect(false)}
+          className="rounded-2xl border-2 border-slate-300 bg-white px-6 py-4 text-left shadow transition hover:bg-slate-50 active:scale-95"
+        >
+          <p className="font-black text-slate-700 text-lg">🤖 Computer goes first</p>
+          <p className="text-sm text-slate-400">You play O and respond to the computer</p>
+        </button>
+      </div>
+    );
+  }
+
+  // ── Game ─────────────────────────────────────────────────────────────────
+  const iWon = winner === mySymbol;
 
   return (
     <div className="flex flex-col items-center gap-6 py-4">
@@ -154,12 +187,18 @@ export function TicTacToeVsComputer() {
           }`}>
             {winner === 'draw' ? "It's a draw!" : iWon ? 'You win!' : 'Computer wins!'}
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-center">
             <button
               onClick={handleReplay}
               className="rounded-2xl border-2 border-green-300 bg-green-500 px-5 py-2 text-sm font-black text-white shadow transition hover:bg-green-600 active:scale-95"
             >
               🔄 Play Again
+            </button>
+            <button
+              onClick={() => setGoFirst(null)}
+              className="rounded-2xl border-2 border-slate-300 bg-white px-5 py-2 text-sm font-black text-slate-700 shadow transition hover:bg-slate-50 active:scale-95"
+            >
+              Change Order
             </button>
             <button
               onClick={() => router.push('/games/tic-tac-toe')}
@@ -173,11 +212,15 @@ export function TicTacToeVsComputer() {
 
       {/* Symbol indicator */}
       <p className="text-sm font-semibold text-slate-500">
-        You (<span className="font-black text-indigo-600">❌ X</span>)
+        You ({mySymbol === 'X'
+          ? <span className="font-black text-indigo-600">❌ X</span>
+          : <span className="font-black text-rose-500">⭕ O</span>})
         {' vs '}
         <span className="font-black text-slate-700">🤖 Computer</span>
         {' ('}
-        <span className="font-black text-rose-500">⭕ O</span>
+        {aiSymbol === 'X'
+          ? <span className="font-black text-indigo-600">❌ X</span>
+          : <span className="font-black text-rose-500">⭕ O</span>}
         {')'}
       </p>
     </div>
