@@ -3,45 +3,12 @@
 import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 
-const RULES: Record<string, { title: string; content: React.ReactNode }> = {
-  'tic-tac-toe': {
-    title: '❌ Tic-Tac-Toe Rules',
-    content: (
-      <div className="flex flex-col gap-3 text-slate-700 text-sm">
-        <p>Tic-Tac-Toe is a two-player game played on a 3×3 grid.</p>
-        <ul className="flex flex-col gap-2 list-none">
-          <li className="flex gap-2"><span className="text-indigo-500 font-black">1.</span> Players alternate turns placing their mark (X or O) in an empty square.</li>
-          <li className="flex gap-2"><span className="text-indigo-500 font-black">2.</span> The first player to get <strong>3 marks in a row</strong> — horizontally, vertically, or diagonally — wins.</li>
-          <li className="flex gap-2"><span className="text-indigo-500 font-black">3.</span> If all 9 squares are filled with no winner, the game is a <strong>draw</strong>.</li>
-        </ul>
-        <p className="text-xs text-slate-400 pt-1">X always goes first in the standard game.</p>
-      </div>
-    ),
-  },
-  'connect4': {
-    title: '🔴 Connect 4 Rules',
-    content: (
-      <div className="flex flex-col gap-3 text-slate-700 text-sm">
-        <p>Connect 4 is a two-player game on a 6-row × 7-column vertical grid.</p>
-        <ul className="flex flex-col gap-2 list-none">
-          <li className="flex gap-2"><span className="text-rose-500 font-black">1.</span> Players take turns dropping a disc into one of the 7 columns. The disc falls to the lowest empty row in that column.</li>
-          <li className="flex gap-2"><span className="text-rose-500 font-black">2.</span> The first player to get <strong>4 discs in a row</strong> — horizontally, vertically, or diagonally — wins.</li>
-          <li className="flex gap-2"><span className="text-rose-500 font-black">3.</span> If the board fills up with no winner, the game is a <strong>draw</strong>.</li>
-          <li className="flex gap-2"><span className="text-rose-500 font-black">4.</span> A full column cannot be played — choose a different column.</li>
-        </ul>
-        <p className="text-xs text-slate-400 pt-1">🔴 Red always goes first.</p>
-      </div>
-    ),
-  },
-};
-
 interface Props {
   game: 'tic-tac-toe' | 'connect4';
 }
 
 export function RulesButton({ game }: Props) {
   const [open, setOpen] = useState(false);
-  const rules = RULES[game];
 
   return (
     <>
@@ -53,9 +20,35 @@ export function RulesButton({ game }: Props) {
       >
         ?
       </button>
-      <Modal isOpen={open} onClose={() => setOpen(false)} title={rules.title}>
-        {rules.content}
-      </Modal>
+
+      {game === 'tic-tac-toe' && (
+        <Modal isOpen={open} onClose={() => setOpen(false)} title="❌ Tic-Tac-Toe Rules">
+          <div className="flex flex-col gap-3 text-sm text-slate-700">
+            <p>A two-player game played on a 3×3 grid.</p>
+            <ol className="flex flex-col gap-2 list-decimal list-inside">
+              <li>Players alternate placing their mark — X or O — in an empty square.</li>
+              <li>Get <strong>3 marks in a row</strong> (horizontal, vertical, or diagonal) to win.</li>
+              <li>If all 9 squares fill up with no winner, it&apos;s a <strong>draw</strong>.</li>
+            </ol>
+            <p className="text-xs text-slate-400">X always goes first.</p>
+          </div>
+        </Modal>
+      )}
+
+      {game === 'connect4' && (
+        <Modal isOpen={open} onClose={() => setOpen(false)} title="🔴 Connect 4 Rules">
+          <div className="flex flex-col gap-3 text-sm text-slate-700">
+            <p>A two-player game on a 6-row × 7-column vertical grid.</p>
+            <ol className="flex flex-col gap-2 list-decimal list-inside">
+              <li>Take turns dropping a disc into a column — it falls to the lowest empty row.</li>
+              <li>Get <strong>4 discs in a row</strong> (horizontal, vertical, or diagonal) to win.</li>
+              <li>If the board fills with no winner, it&apos;s a <strong>draw</strong>.</li>
+              <li>A full column can&apos;t be played — pick a different one.</li>
+            </ol>
+            <p className="text-xs text-slate-400">🔴 Red always goes first.</p>
+          </div>
+        </Modal>
+      )}
     </>
   );
 }
