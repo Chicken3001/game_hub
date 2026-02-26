@@ -2,7 +2,6 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/Button';
-import { RulesButton } from '@/components/RulesButton';
 import { TicTacToeGame } from '@/games/tic-tac-toe';
 import type { TicTacToeGameRow } from '@/games/tic-tac-toe';
 
@@ -31,7 +30,6 @@ export default async function TicTacToeRoomPage({
           <Button variant="back" size="sm">❌ Tic-Tac-Toe</Button>
         </Link>
         <h1 className="text-2xl font-black text-indigo-900">Game Room</h1>
-        <RulesButton game="tic-tac-toe" />
       </div>
       <TicTacToeGame
         initialGame={game as TicTacToeGameRow}

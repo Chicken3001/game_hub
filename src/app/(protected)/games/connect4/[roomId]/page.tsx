@@ -2,7 +2,6 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/Button';
-import { RulesButton } from '@/components/RulesButton';
 import { Connect4Game } from '@/games/connect4';
 import type { Connect4GameRow } from '@/games/connect4';
 
@@ -31,7 +30,6 @@ export default async function Connect4RoomPage({
           <Button variant="back" size="sm">🔴 Connect 4</Button>
         </Link>
         <h1 className="text-2xl font-black text-rose-900">Game Room</h1>
-        <RulesButton game="connect4" />
       </div>
       <Connect4Game
         initialGame={game as Connect4GameRow}

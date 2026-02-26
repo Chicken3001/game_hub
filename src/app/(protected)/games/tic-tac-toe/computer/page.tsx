@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { RulesButton } from '@/components/RulesButton';
 import { TicTacToeVsComputer } from '@/games/tic-tac-toe/TicTacToeVsComputer';
 
 export default function TicTacToeComputerPage() {
@@ -11,7 +10,6 @@ export default function TicTacToeComputerPage() {
           <Button variant="back">← Back</Button>
         </Link>
         <h1 className="text-2xl font-black text-slate-800">❌ vs 🤖</h1>
-        <RulesButton game="tic-tac-toe" />
       </div>
       <TicTacToeVsComputer />
     </div>

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Connect4VsComputer, type Difficulty } from '@/games/connect4/Connect4VsComputer';
-import { RulesButton } from '@/components/RulesButton';
 
 const DIFFICULTIES: { value: Difficulty; label: string; emoji: string; description: string; style: string }[] = [
   {
@@ -57,7 +56,6 @@ export default function Connect4ComputerPage() {
             <Button variant="back">← Back</Button>
           </Link>
           <h1 className="text-2xl font-black text-slate-800">🔴 vs 🤖</h1>
-          <RulesButton game="connect4" />
         </div>
         <div className="flex flex-col gap-3">
           <p className="text-center text-sm font-semibold text-slate-500 mb-1">Choose a difficulty</p>
@@ -88,7 +86,6 @@ export default function Connect4ComputerPage() {
             ← Back
           </button>
           <h1 className="text-2xl font-black text-slate-800">🔴 vs 🤖</h1>
-          <RulesButton game="connect4" />
         </div>
         <div className="flex flex-col gap-3">
           <p className="text-center text-sm font-semibold text-slate-500 mb-1">Who goes first?</p>
@@ -126,7 +123,6 @@ export default function Connect4ComputerPage() {
         <h1 className="text-xl font-black text-slate-800">
           🔴 vs 🤖 {current.emoji} {current.label}
         </h1>
-        <RulesButton game="connect4" />
       </div>
       <Connect4VsComputer
         difficulty={difficulty}
