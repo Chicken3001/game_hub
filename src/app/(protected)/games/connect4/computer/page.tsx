@@ -127,7 +127,7 @@ export default function Connect4ComputerPage() {
       <Connect4VsComputer
         difficulty={difficulty}
         goFirst={goFirst}
-        onChangeSettings={() => setGoFirst(null)}
+        onChangeSettings={() => setDifficulty(null)}
       />
     </div>
   );

@@ -127,7 +127,7 @@ export default function CheckersComputerPage() {
       <CheckersVsComputer
         difficulty={difficulty}
         goFirst={goFirst}
-        onChangeSettings={() => setGoFirst(null)}
+        onChangeSettings={() => setDifficulty(null)}
       />
     </div>
   );
