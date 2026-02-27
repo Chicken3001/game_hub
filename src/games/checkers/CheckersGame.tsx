@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -36,6 +36,8 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
   const [selectedPiece, setSelectedPiece] = useState<number | null>(null);
   const [pendingBoard, setPendingBoard] = useState<CellValue[] | null>(null);
   const [mustContinueFrom, setMustContinueFrom] = useState<number | null>(null);
+  const [lastMove, setLastMove] = useState<{ from: number; to: number } | null>(null);
+  const jumpOriginRef = useRef<number | null>(null);
 
   const DISCONNECT_TIMEOUT = 30;
 
@@ -169,8 +171,25 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'checkers_games', filter: `id=eq.${roomId}` },
         (payload) => {
-          setGame(payload.new as CheckersGameRow);
-          // Reset local move state when remote update arrives
+          const newGame = payload.new as CheckersGameRow;
+          const oldBoard = (payload.old as Partial<CheckersGameRow>).board;
+          if (oldBoard) {
+            let moveFrom = -1, moveTo = -1;
+            for (let i = 0; i < 64; i++) {
+              if (oldBoard[i] === 0 && newGame.board[i] !== 0) moveTo = i;
+            }
+            if (moveTo !== -1) {
+              const movedCell = newGame.board[moveTo];
+              const movedOwner: PlayerNumber = movedCell === 1 || movedCell === 3 ? 1 : 2;
+              for (let i = 0; i < 64; i++) {
+                if (isPlayerPiece(oldBoard[i] as CellValue, movedOwner) && newGame.board[i] === 0) {
+                  moveFrom = i; break;
+                }
+              }
+            }
+            if (moveFrom !== -1 && moveTo !== -1) setLastMove({ from: moveFrom, to: moveTo });
+          }
+          setGame(newGame);
           setSelectedPiece(null);
           setPendingBoard(null);
           setMustContinueFrom(null);
@@ -200,7 +219,9 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
   }, [selectedPiece, mustContinueFrom, pendingBoard, game.board, isMyTurn, gameOver, myPlayer]);
 
   // ── Commit a completed move to DB ─────────────────────────────────────────
-  const commitMove = useCallback(async (newBoard: CellValue[]) => {
+  const commitMove = useCallback(async (newBoard: CellValue[], from: number, to: number) => {
+    setLastMove({ from, to });
+    jumpOriginRef.current = null;
     setSelectedPiece(null);
     setPendingBoard(null);
     setMustContinueFrom(null);
@@ -256,7 +277,7 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
         (myPlayer === 2 && toRow === 7 && newBoard[jump.to] === 2);
       if (kinged) {
         newBoard[jump.to] = myPlayer === 1 ? 3 : 4;
-        void commitMove(newBoard);
+        void commitMove(newBoard, jumpOriginRef.current ?? mustContinueFrom, jump.to);
         return;
       }
 
@@ -266,7 +287,7 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
         setPendingBoard(newBoard);
         setMustContinueFrom(jump.to);
       } else {
-        void commitMove(newBoard);
+        void commitMove(newBoard, jumpOriginRef.current ?? mustContinueFrom, jump.to);
       }
       return;
     }
@@ -304,17 +325,18 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
         (myPlayer === 2 && toRow === 7 && newBoard[jump.to] === 2);
       if (kinged) {
         newBoard[jump.to] = myPlayer === 1 ? 3 : 4;
-        void commitMove(newBoard);
+        void commitMove(newBoard, selectedPiece!, jump.to);
         return;
       }
 
       const moreJumps = getImmediateJumps(newBoard, jump.to, myPlayer!);
       if (moreJumps.length > 0) {
+        jumpOriginRef.current = selectedPiece;
         setSelectedPiece(jump.to);
         setPendingBoard(newBoard);
         setMustContinueFrom(jump.to);
       } else {
-        void commitMove(newBoard);
+        void commitMove(newBoard, selectedPiece!, jump.to);
       }
     } else {
       if (!validDestinations.has(idx)) return;
@@ -324,7 +346,7 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
       const [toRow] = rowCol(idx);
       if (myPlayer === 1 && toRow === 0 && newBoard[idx] === 1) newBoard[idx] = 3;
       if (myPlayer === 2 && toRow === 7 && newBoard[idx] === 2) newBoard[idx] = 4;
-      void commitMove(newBoard);
+      void commitMove(newBoard, selectedPiece!, idx);
     }
   }
 
@@ -450,7 +472,7 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
                     onClick={() => handleCellClick(idx)}
                     className={`
                       aspect-square flex items-center justify-center relative
-                      ${!dark ? 'bg-amber-100' : isValidDest ? 'bg-amber-600 ring-2 ring-yellow-300 cursor-pointer' : 'bg-amber-800'}
+                      ${!dark ? 'bg-amber-100' : isValidDest ? 'bg-amber-600 ring-2 ring-yellow-300 cursor-pointer' : lastMove?.from === idx ? 'bg-amber-700' : 'bg-amber-800'}
                       ${dark && isMine && isMyTurn && !mustContinueFrom ? 'cursor-pointer' : ''}
                       ${dark && mustContinueFrom === idx ? 'cursor-default' : ''}
                     `}
@@ -468,8 +490,7 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
                         ${owner === 1
                           ? 'bg-rose-500 border-2 border-rose-700 text-yellow-300'
                           : 'bg-slate-800 border-2 border-slate-600 text-yellow-300'}
-                        ${isSelected ? 'ring-4 ring-yellow-400' : ''}
-                        ${isValidDest ? 'ring-2 ring-yellow-300' : ''}
+                        ${isSelected ? 'ring-4 ring-yellow-400' : lastMove?.to === idx ? 'ring-2 ring-white/80' : isValidDest ? 'ring-2 ring-yellow-300' : ''}
                       `}>
                         {king ? '♛' : ''}
                       </div>

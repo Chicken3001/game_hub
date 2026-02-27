@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   INITIAL_BOARD,
@@ -127,6 +127,8 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
   const [selectedPiece, setSelectedPiece] = useState<number | null>(null);
   const [pendingBoard, setPendingBoard] = useState<CellValue[] | null>(null);
   const [mustContinueFrom, setMustContinueFrom] = useState<number | null>(null);
+  const [lastMove, setLastMove] = useState<{ from: number; to: number } | null>(null);
+  const jumpOriginRef = useRef<number | null>(null);
 
   const winner = useMemo(() => {
     const current: PlayerNumber = isComputerTurn ? aiPlayer : humanPlayer;
@@ -146,6 +148,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     const id = setTimeout(() => {
       const move = getBestMove(board, aiPlayer, DEPTH[difficulty]);
       const newBoard = applyMove(board, move);
+      setLastMove({ from: move.from, to: move.to });
       setBoard(newBoard);
 
       const w = checkWinner(newBoard, humanPlayer);
@@ -179,7 +182,9 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     return new Set(getStepMoves(activeBoard, selectedPiece, humanPlayer));
   }, [selectedPiece, mustContinueFrom, pendingBoard, board, isComputerTurn, gameOver, humanPlayer]);
 
-  const commitMove = useCallback((newBoard: CellValue[]) => {
+  const commitMove = useCallback((newBoard: CellValue[], from: number, to: number) => {
+    setLastMove({ from, to });
+    jumpOriginRef.current = null;
     setSelectedPiece(null);
     setPendingBoard(null);
     setMustContinueFrom(null);
@@ -216,7 +221,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
         (humanPlayer === 2 && toRow === 7 && newBoard[jump.to] === 2);
       if (kinged) {
         newBoard[jump.to] = humanPlayer === 1 ? 3 : 4;
-        commitMove(newBoard);
+        commitMove(newBoard, jumpOriginRef.current ?? mustContinueFrom, jump.to);
         return;
       }
 
@@ -226,7 +231,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
         setPendingBoard(newBoard);
         setMustContinueFrom(jump.to);
       } else {
-        commitMove(newBoard);
+        commitMove(newBoard, jumpOriginRef.current ?? mustContinueFrom, jump.to);
       }
       return;
     }
@@ -263,17 +268,18 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
         (humanPlayer === 2 && toRow === 7 && newBoard[jump.to] === 2);
       if (kinged) {
         newBoard[jump.to] = humanPlayer === 1 ? 3 : 4;
-        commitMove(newBoard);
+        commitMove(newBoard, selectedPiece!, jump.to);
         return;
       }
 
       const moreJumps = getImmediateJumps(newBoard, jump.to, humanPlayer);
       if (moreJumps.length > 0) {
+        jumpOriginRef.current = selectedPiece;
         setSelectedPiece(jump.to);
         setPendingBoard(newBoard);
         setMustContinueFrom(jump.to);
       } else {
-        commitMove(newBoard);
+        commitMove(newBoard, selectedPiece!, jump.to);
       }
     } else {
       if (!validDestinations.has(idx)) return;
@@ -283,7 +289,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
       const [toRow] = rowCol(idx);
       if (humanPlayer === 1 && toRow === 0 && newBoard[idx] === 1) newBoard[idx] = 3;
       if (humanPlayer === 2 && toRow === 7 && newBoard[idx] === 2) newBoard[idx] = 4;
-      commitMove(newBoard);
+      commitMove(newBoard, selectedPiece!, idx);
     }
   }
 
@@ -292,6 +298,8 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     setSelectedPiece(null);
     setPendingBoard(null);
     setMustContinueFrom(null);
+    setLastMove(null);
+    jumpOriginRef.current = null;
     setGameResult(null);
     setIsComputerTurn(!goFirst);
   }
@@ -333,7 +341,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
                 onClick={() => handleCellClick(idx)}
                 className={`
                   aspect-square flex items-center justify-center relative
-                  ${!dark ? 'bg-amber-100' : isValidDest ? 'bg-amber-600 ring-2 ring-yellow-300 cursor-pointer' : 'bg-amber-800'}
+                  ${!dark ? 'bg-amber-100' : isValidDest ? 'bg-amber-600 ring-2 ring-yellow-300 cursor-pointer' : lastMove?.from === idx ? 'bg-amber-700' : 'bg-amber-800'}
                   ${dark && isHuman && !isComputerTurn && !mustContinueFrom ? 'cursor-pointer' : ''}
                 `}
               >
@@ -347,8 +355,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
                     ${cellOwner === 1
                       ? 'bg-rose-500 border-2 border-rose-700 text-yellow-300'
                       : 'bg-slate-800 border-2 border-slate-600 text-yellow-300'}
-                    ${isSelected ? 'ring-4 ring-yellow-400' : ''}
-                    ${isValidDest ? 'ring-2 ring-yellow-300' : ''}
+                    ${isSelected ? 'ring-4 ring-yellow-400' : lastMove?.to === idx ? 'ring-2 ring-white/80' : isValidDest ? 'ring-2 ring-yellow-300' : ''}
                   `}>
                     {king ? '♛' : ''}
                   </div>
