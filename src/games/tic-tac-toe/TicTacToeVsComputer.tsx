@@ -2,72 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { checkWinner, getBestMove, createEmptyBoard } from './logic';
 
 type CellValue = 'X' | 'O' | '';
-
-const WIN_LINES = [
-  [0, 1, 2], [3, 4, 5], [6, 7, 8],
-  [0, 3, 6], [1, 4, 7], [2, 5, 8],
-  [0, 4, 8], [2, 4, 6],
-];
-
-function checkWinner(b: CellValue[]): 'X' | 'O' | 'draw' | null {
-  for (const [a, x, c] of WIN_LINES) {
-    if (b[a] && b[a] === b[x] && b[a] === b[c]) return b[a] as 'X' | 'O';
-  }
-  return b.every(v => v !== '') ? 'draw' : null;
-}
-
-// Minimax parameterised by which symbol the AI controls
-function minimax(board: CellValue[], isMaximizing: boolean, ai: 'X' | 'O'): number {
-  const human: 'X' | 'O' = ai === 'X' ? 'O' : 'X';
-  const result = checkWinner(board);
-  if (result === ai) return 10;
-  if (result === human) return -10;
-  if (result === 'draw') return 0;
-
-  if (isMaximizing) {
-    let best = -Infinity;
-    for (let i = 0; i < 9; i++) {
-      if (board[i] === '') {
-        board[i] = ai;
-        best = Math.max(best, minimax(board, false, ai));
-        board[i] = '';
-      }
-    }
-    return best;
-  } else {
-    let best = Infinity;
-    for (let i = 0; i < 9; i++) {
-      if (board[i] === '') {
-        board[i] = human;
-        best = Math.min(best, minimax(board, true, ai));
-        board[i] = '';
-      }
-    }
-    return best;
-  }
-}
-
-function getBestMove(board: CellValue[], ai: 'X' | 'O'): number {
-  let bestVal = -Infinity, bestMove = -1;
-  for (let i = 0; i < 9; i++) {
-    if (board[i] === '') {
-      board[i] = ai;
-      const val = minimax(board, false, ai);
-      board[i] = '';
-      if (val > bestVal) { bestVal = val; bestMove = i; }
-    }
-  }
-  return bestMove;
-}
-
-const EMPTY_BOARD: CellValue[] = Array(9).fill('');
 
 export function TicTacToeVsComputer() {
   const router = useRouter();
   const [goFirst, setGoFirst] = useState<boolean | null>(null);
-  const [board, setBoard] = useState<CellValue[]>([...EMPTY_BOARD]);
+  const [board, setBoard] = useState<CellValue[]>(createEmptyBoard());
   const [isComputerTurn, setIsComputerTurn] = useState(false);
   const [lastMove, setLastMove] = useState<number | null>(null);
 
@@ -98,7 +40,7 @@ export function TicTacToeVsComputer() {
 
   function handleOrderSelect(first: boolean) {
     setGoFirst(first);
-    setBoard([...EMPTY_BOARD]);
+    setBoard(createEmptyBoard());
     setIsComputerTurn(!first);
   }
 
@@ -112,7 +54,7 @@ export function TicTacToeVsComputer() {
   }
 
   function handleReplay() {
-    setBoard([...EMPTY_BOARD]);
+    setBoard(createEmptyBoard());
     setLastMove(null);
     setIsComputerTurn(goFirst === false);
   }

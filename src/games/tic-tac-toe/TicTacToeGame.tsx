@@ -4,19 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { TicTacToeGameRow, CellValue, GameStatus, PlayerSymbol } from './types';
-
-const WIN_LINES = [
-  [0, 1, 2], [3, 4, 5], [6, 7, 8],
-  [0, 3, 6], [1, 4, 7], [2, 5, 8],
-  [0, 4, 8], [2, 4, 6],
-];
-
-function checkWinner(b: CellValue[]): PlayerSymbol | 'draw' | null {
-  for (const [a, x, c] of WIN_LINES) {
-    if (b[a] && b[a] === b[x] && b[a] === b[c]) return b[a] as PlayerSymbol;
-  }
-  return b.every(v => v !== '') ? 'draw' : null;
-}
+import { checkWinner } from './logic';
 
 interface Props {
   initialGame: TicTacToeGameRow;
