@@ -63,7 +63,7 @@ export const GAMES: GameEntry[] = [
     name: "Connect 4",
     description: "Drop your discs and connect four in a row before your opponent!",
     path: "/games/connect4",
-    icon: "🔴",
+    icon: "🟡",
     multiplayer: true,
   },
   {
