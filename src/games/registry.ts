@@ -66,4 +66,12 @@ export const GAMES: GameEntry[] = [
     icon: "🔴",
     multiplayer: true,
   },
+  {
+    id: "checkers",
+    name: "Checkers",
+    description: "Jump your opponent's pieces and king your way to victory!",
+    path: "/games/checkers",
+    icon: "🔴",
+    multiplayer: true,
+  },
 ];
