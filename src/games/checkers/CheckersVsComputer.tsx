@@ -9,6 +9,7 @@ import {
   getStepMoves,
   applyMove,
   checkWinner,
+  boardKey,
   isPlayerPiece,
   isKing,
   rowCol,
@@ -123,6 +124,12 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
   const [board, setBoard] = useState<CellValue[]>([...INITIAL_BOARD]);
   const [isComputerTurn, setIsComputerTurn] = useState(!goFirst);
 
+  // Position history for repetition draw — keyed by boardKey(board, nextTurn)
+  // P1 always moves first, so initial position key uses turn=1
+  const positionHistoryRef = useRef<Map<string, number>>(
+    new Map([[boardKey([...INITIAL_BOARD], 1), 1]])
+  );
+
   // Multi-step move state
   const [selectedPiece, setSelectedPiece] = useState<number | null>(null);
   const [pendingBoard, setPendingBoard] = useState<CellValue[] | null>(null);
@@ -155,9 +162,16 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
       if (w !== null) {
         setGameResult(w);
       } else {
-        const humanMoves = getValidMoves(newBoard, humanPlayer);
-        if (humanMoves.length === 0) setGameResult(aiPlayer);
-        else setIsComputerTurn(false);
+        const key = boardKey(newBoard, humanPlayer);
+        const count = (positionHistoryRef.current.get(key) ?? 0) + 1;
+        positionHistoryRef.current.set(key, count);
+        if (count >= 3) {
+          setGameResult('draw');
+        } else {
+          const humanMoves = getValidMoves(newBoard, humanPlayer);
+          if (humanMoves.length === 0) setGameResult(aiPlayer);
+          else setIsComputerTurn(false);
+        }
       }
     }, delay);
     return () => clearTimeout(id);
@@ -194,9 +208,16 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     if (w !== null) {
       setGameResult(w);
     } else {
-      const aiMoves = getValidMoves(newBoard, aiPlayer);
-      if (aiMoves.length === 0) setGameResult(humanPlayer);
-      else setIsComputerTurn(true);
+      const key = boardKey(newBoard, aiPlayer);
+      const count = (positionHistoryRef.current.get(key) ?? 0) + 1;
+      positionHistoryRef.current.set(key, count);
+      if (count >= 3) {
+        setGameResult('draw');
+      } else {
+        const aiMoves = getValidMoves(newBoard, aiPlayer);
+        if (aiMoves.length === 0) setGameResult(humanPlayer);
+        else setIsComputerTurn(true);
+      }
     }
   }, [aiPlayer, humanPlayer]);
 
@@ -300,6 +321,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     setMustContinueFrom(null);
     setLastMove(null);
     jumpOriginRef.current = null;
+    positionHistoryRef.current = new Map([[boardKey([...INITIAL_BOARD], 1), 1]]);
     setGameResult(null);
     setIsComputerTurn(!goFirst);
   }

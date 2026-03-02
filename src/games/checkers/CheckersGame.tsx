@@ -10,6 +10,7 @@ import {
   getStepMoves,
   applyMove,
   checkWinner,
+  boardKey,
   isPlayerPiece,
   isKing,
   rowCol,
@@ -228,19 +229,31 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
 
     const next: PlayerNumber = myPlayer === 1 ? 2 : 1;
     const winner = checkWinner(newBoard, next);
+
+    // Repetition draw: same position (board + whose turn) seen 3 times
+    const key = boardKey(newBoard, next);
+    const currentHistory = game.position_history ?? [];
+    const newHistory = [...currentHistory, key];
+    const repetitionCount = newHistory.filter(k => k === key).length;
+    const isRepetitionDraw = repetitionCount >= 3;
+
     const newStatus: GameStatus =
-      winner === 1 ? 'p1_wins' : winner === 2 ? 'p2_wins' : 'active';
+      isRepetitionDraw ? 'draw'
+      : winner === 1 ? 'p1_wins'
+      : winner === 2 ? 'p2_wins'
+      : 'active';
 
     setGame(g => ({
       ...g,
       board: newBoard,
       status: newStatus,
       current_turn: newStatus === 'active' ? next : g.current_turn,
+      position_history: newHistory,
     }));
 
     const { error } = await supabase
       .from('checkers_games')
-      .update({ board: newBoard, current_turn: next, status: newStatus })
+      .update({ board: newBoard, current_turn: next, status: newStatus, position_history: newHistory })
       .eq('id', roomId)
       .eq('current_turn', myPlayer!)
       .eq('status', 'active');
@@ -253,7 +266,7 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
         .single()
         .then(({ data: r }) => { if (r) setGame(r as CheckersGameRow); });
     }
-  }, [myPlayer, roomId, supabase]);
+  }, [myPlayer, roomId, supabase, game.position_history]);
 
   // ── Click handler ─────────────────────────────────────────────────────────
   function handleCellClick(idx: number) {

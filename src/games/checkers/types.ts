@@ -11,6 +11,7 @@ export interface CheckersGameRow {
   board: CellValue[];        // 64-element flat array, index = row*8+col
   current_turn: PlayerNumber;
   status: GameStatus;
+  position_history: string[];
   created_at: string;
   updated_at: string;
 }

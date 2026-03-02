@@ -60,6 +60,7 @@ export function RulesButton({ game }: Props) {
               <li>Jump over an opponent&apos;s piece to capture it — <strong>capturing is mandatory</strong> if available.</li>
               <li>If another capture is possible after a jump, you <strong>must keep jumping</strong> (multi-jump).</li>
               <li>Win by capturing all opponent pieces or leaving them with no legal moves.</li>
+              <li>If the same board position occurs <strong>3 times</strong> with the same player to move, the game is a <strong>draw</strong>.</li>
             </ol>
             <p className="text-xs text-slate-400">🔴 Red always goes first.</p>
           </div>

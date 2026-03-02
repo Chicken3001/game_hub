@@ -206,6 +206,15 @@ export function applyMove(board: CellValue[], move: CheckersMove): CellValue[] {
   return newBoard;
 }
 
+// ── Position key ──────────────────────────────────────────────────────────────
+
+/**
+ * Serialize board + whose turn into a compact position key for repetition tracking.
+ */
+export function boardKey(board: CellValue[], turn: PlayerNumber): string {
+  return board.join('') + turn;
+}
+
 // ── Win detection ─────────────────────────────────────────────────────────────
 
 /**
