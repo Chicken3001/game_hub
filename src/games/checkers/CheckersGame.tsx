@@ -499,7 +499,7 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
           )}
 
           {/* Board grid */}
-          <div className="relative rounded-2xl bg-amber-900 p-2 shadow-xl w-full">
+          <div className="rounded-2xl bg-amber-900 p-2 shadow-xl w-full">
             <div className="grid grid-cols-8 gap-0.5">
               {Array.from({ length: 64 }, (_, idx) => {
                 const [row, col] = rowCol(idx);
@@ -544,17 +544,6 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
                   </div>
                 );
               })}
-            </div>
-            <div className="absolute bottom-3 right-3 group">
-              <div className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-black cursor-default ${game.forced_capture ? 'bg-green-500/80 text-white' : 'bg-black/40 text-white/70'}`}>
-                {game.forced_capture ? '🔒 On' : '🔓 Off'}
-              </div>
-              <div className="absolute bottom-full right-0 mb-1.5 hidden group-hover:block">
-                <div className="rounded-xl bg-slate-800 px-3 py-2 text-xs text-white shadow-lg whitespace-nowrap">
-                  <p className="font-black">{game.forced_capture ? 'Forced Capture: On' : 'Forced Capture: Off'}</p>
-                  <p className="text-white/70">{game.forced_capture ? 'You must jump when possible' : 'Jumping is optional'}</p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -606,16 +595,29 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
 
       {/* Player indicator */}
       {myPlayer && game.status !== 'waiting' && (
-        <p className="text-sm font-semibold text-slate-500">
-          You (
-          {myPlayer === 1
-            ? <span className="font-black text-rose-500">🔴 Red</span>
-            : <span className="font-black text-slate-800">⚫ Black</span>}
-          )
-          {opponentUsername && (
-            <> vs <span className="font-black text-slate-700">{opponentUsername}</span></>
-          )}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-semibold text-slate-500">
+            You (
+            {myPlayer === 1
+              ? <span className="font-black text-rose-500">🔴 Red</span>
+              : <span className="font-black text-slate-800">⚫ Black</span>}
+            )
+            {opponentUsername && (
+              <> vs <span className="font-black text-slate-700">{opponentUsername}</span></>
+            )}
+          </p>
+          <div className="relative group">
+            <div className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-black cursor-default ${game.forced_capture ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+              {game.forced_capture ? '🔒 On' : '🔓 Off'}
+            </div>
+            <div className="absolute bottom-full right-0 mb-1.5 hidden group-hover:block z-10">
+              <div className="rounded-xl bg-slate-800 px-3 py-2 text-xs text-white shadow-lg whitespace-nowrap">
+                <p className="font-black">{game.forced_capture ? 'Forced Capture: On' : 'Forced Capture: Off'}</p>
+                <p className="text-white/70">{game.forced_capture ? 'You must jump when possible' : 'Jumping is optional'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

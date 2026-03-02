@@ -359,7 +359,7 @@ export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChang
       )}
 
       {/* Board */}
-      <div className="relative rounded-2xl bg-amber-900 p-2 shadow-xl w-full max-w-sm">
+      <div className="rounded-2xl bg-amber-900 p-2 shadow-xl w-full max-w-sm">
         <div className="grid grid-cols-8 gap-0.5">
           {Array.from({ length: 64 }, (_, idx) => {
             const [row, col] = rowCol(idx);
@@ -400,17 +400,6 @@ export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChang
               </div>
             );
           })}
-        </div>
-        <div className="absolute bottom-3 right-3 group">
-          <div className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-black cursor-default ${forcedCapture ? 'bg-green-500/80 text-white' : 'bg-black/40 text-white/70'}`}>
-            {forcedCapture ? '🔒 On' : '🔓 Off'}
-          </div>
-          <div className="absolute bottom-full right-0 mb-1.5 hidden group-hover:block">
-            <div className="rounded-xl bg-slate-800 px-3 py-2 text-xs text-white shadow-lg whitespace-nowrap">
-              <p className="font-black">{forcedCapture ? 'Forced Capture: On' : 'Forced Capture: Off'}</p>
-              <p className="text-white/70">{forcedCapture ? 'You must jump when possible' : 'Jumping is optional'}</p>
-            </div>
-          </div>
         </div>
       </div>
 
