@@ -12,6 +12,7 @@ export interface CheckersGameRow {
   current_turn: PlayerNumber;
   status: GameStatus;
   position_history: string[];
+  forced_capture: boolean;
   created_at: string;
   updated_at: string;
 }

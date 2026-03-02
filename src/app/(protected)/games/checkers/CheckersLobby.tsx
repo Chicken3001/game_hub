@@ -125,6 +125,14 @@ export function CheckersLobby({ userId }: Props) {
         🤖 Play vs Computer
       </button>
 
+      <div className="flex items-start gap-2 rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+        <span className="mt-0.5 shrink-0 text-slate-400">ℹ️</span>
+        <p>
+          <span className="font-black text-slate-600">Forced Capture</span> is on by default — if you can jump an opponent&apos;s piece, you must.
+          Both players can toggle this rule on or off at any time during the game.
+        </p>
+      </div>
+
       <div className="flex flex-col gap-2">
         <h2 className="text-lg font-black text-slate-700">Open Lobbies</h2>
         {loading && (

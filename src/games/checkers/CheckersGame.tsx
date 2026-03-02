@@ -174,26 +174,27 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
         (payload) => {
           const newGame = payload.new as CheckersGameRow;
           const oldBoard = (payload.old as Partial<CheckersGameRow>).board;
-          if (oldBoard) {
+          const boardChanged = oldBoard && JSON.stringify(oldBoard) !== JSON.stringify(newGame.board);
+          if (boardChanged) {
             let moveFrom = -1, moveTo = -1;
             for (let i = 0; i < 64; i++) {
-              if (oldBoard[i] === 0 && newGame.board[i] !== 0) moveTo = i;
+              if (oldBoard![i] === 0 && newGame.board[i] !== 0) moveTo = i;
             }
             if (moveTo !== -1) {
               const movedCell = newGame.board[moveTo];
               const movedOwner: PlayerNumber = movedCell === 1 || movedCell === 3 ? 1 : 2;
               for (let i = 0; i < 64; i++) {
-                if (isPlayerPiece(oldBoard[i] as CellValue, movedOwner) && newGame.board[i] === 0) {
+                if (isPlayerPiece(oldBoard![i] as CellValue, movedOwner) && newGame.board[i] === 0) {
                   moveFrom = i; break;
                 }
               }
             }
             if (moveFrom !== -1 && moveTo !== -1) setLastMove({ from: moveFrom, to: moveTo });
+            setSelectedPiece(null);
+            setPendingBoard(null);
+            setMustContinueFrom(null);
           }
           setGame(newGame);
-          setSelectedPiece(null);
-          setPendingBoard(null);
-          setMustContinueFrom(null);
         }
       )
       .subscribe();
@@ -202,12 +203,12 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
 
   // ── Pieces that must move when a capture is mandatory ─────────────────────
   const forcedPieces = useMemo((): Set<number> => {
-    if (!isMyTurn || gameOver || mustContinueFrom !== null) return new Set();
+    if (!isMyTurn || gameOver || mustContinueFrom !== null || !game.forced_capture) return new Set();
     const activeBoard = pendingBoard ?? game.board;
-    const validMoves = getValidMoves(activeBoard, myPlayer!);
+    const validMoves = getValidMoves(activeBoard, myPlayer!, true);
     if (!validMoves.some(m => m.jumped.length > 0)) return new Set();
     return new Set(validMoves.map(m => m.from));
-  }, [isMyTurn, gameOver, mustContinueFrom, pendingBoard, game.board, myPlayer]);
+  }, [isMyTurn, gameOver, mustContinueFrom, game.forced_capture, pendingBoard, game.board, myPlayer]);
 
   // ── Valid destinations for highlighted cells ──────────────────────────────
   const validDestinations = useMemo((): Set<number> => {
@@ -219,14 +220,17 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
     }
     if (selectedPiece === null) return new Set();
 
-    const validMoves = getValidMoves(activeBoard, myPlayer!);
+    const validMoves = getValidMoves(activeBoard, myPlayer!, game.forced_capture);
     const hasJumps = validMoves.some(m => m.jumped.length > 0);
 
-    if (hasJumps) {
+    if (game.forced_capture && hasJumps) {
       return new Set(getImmediateJumps(activeBoard, selectedPiece, myPlayer!).map(j => j.to));
     }
-    return new Set(getStepMoves(activeBoard, selectedPiece, myPlayer!));
-  }, [selectedPiece, mustContinueFrom, pendingBoard, game.board, isMyTurn, gameOver, myPlayer]);
+    return new Set([
+      ...getImmediateJumps(activeBoard, selectedPiece, myPlayer!).map(j => j.to),
+      ...getStepMoves(activeBoard, selectedPiece, myPlayer!),
+    ]);
+  }, [selectedPiece, mustContinueFrom, pendingBoard, game.board, game.forced_capture, isMyTurn, gameOver, myPlayer]);
 
   // ── Commit a completed move to DB ─────────────────────────────────────────
   const commitMove = useCallback(async (newBoard: CellValue[], from: number, to: number) => {
@@ -316,9 +320,11 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
 
     // ── Normal: select a piece ──
     if (isPlayerPiece(activeBoard[idx], myPlayer!)) {
-      const validMoves = getValidMoves(activeBoard, myPlayer!);
-      const hasJumps = validMoves.some(m => m.jumped.length > 0);
-      if (hasJumps && getImmediateJumps(activeBoard, idx, myPlayer!).length === 0) return;
+      if (game.forced_capture) {
+        const validMoves = getValidMoves(activeBoard, myPlayer!, true);
+        const hasJumps = validMoves.some(m => m.jumped.length > 0);
+        if (hasJumps && getImmediateJumps(activeBoard, idx, myPlayer!).length === 0) return;
+      }
       setSelectedPiece(idx);
       setPendingBoard(null);
       setMustContinueFrom(null);
@@ -327,15 +333,9 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
 
     if (selectedPiece === null) return;
 
-    // ── Normal: execute a move ──
-    const validMoves = getValidMoves(activeBoard, myPlayer!);
-    const hasJumps = validMoves.some(m => m.jumped.length > 0);
-
-    if (hasJumps) {
-      const jumps = getImmediateJumps(activeBoard, selectedPiece, myPlayer!);
-      const jump = jumps.find(j => j.to === idx);
-      if (!jump) return;
-
+    // ── Normal: try jump first, then step ──
+    const jump = getImmediateJumps(activeBoard, selectedPiece, myPlayer!).find(j => j.to === idx);
+    if (jump) {
       const newBoard = activeBoard.slice() as CellValue[];
       newBoard[jump.to] = newBoard[selectedPiece];
       newBoard[selectedPiece] = 0;
@@ -360,8 +360,7 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
       } else {
         void commitMove(newBoard, selectedPiece!, jump.to);
       }
-    } else {
-      if (!validDestinations.has(idx)) return;
+    } else if (validDestinations.has(idx)) {
       const newBoard = activeBoard.slice() as CellValue[];
       newBoard[idx] = newBoard[selectedPiece];
       newBoard[selectedPiece] = 0;
@@ -370,6 +369,17 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
       if (myPlayer === 2 && toRow === 7 && newBoard[idx] === 2) newBoard[idx] = 4;
       void commitMove(newBoard, selectedPiece!, idx);
     }
+  }
+
+  async function handleToggleForcedCapture() {
+    if (game.status !== 'active') return;
+    const newVal = !game.forced_capture;
+    setGame(g => ({ ...g, forced_capture: newVal }));
+    await supabase
+      .from('checkers_games')
+      .update({ forced_capture: newVal })
+      .eq('id', roomId)
+      .eq('status', 'active');
   }
 
   async function handleRematch() {
@@ -467,6 +477,21 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
                 ? '🎯 Your turn!'
                 : `⏳ ${opponentUsername ?? 'Opponent'}'s turn…`}
             </p>
+          )}
+
+          {/* Forced capture toggle — either player can flip it */}
+          {!isSpectator && (
+            <div className="flex items-center gap-2 self-center">
+              <span className="text-xs font-semibold text-slate-500">Forced Capture</span>
+              <button
+                onClick={handleToggleForcedCapture}
+                disabled={mustContinueFrom !== null}
+                aria-label={game.forced_capture ? 'Disable forced capture' : 'Enable forced capture'}
+                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-40 ${game.forced_capture ? 'bg-green-500' : 'bg-slate-300'}`}
+              >
+                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${game.forced_capture ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
           )}
 
           {mustContinueFrom !== null && (

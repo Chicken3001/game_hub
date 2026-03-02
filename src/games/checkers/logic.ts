@@ -164,7 +164,7 @@ export function getAllJumpSequences(
  * If any jump exists → returns only jump sequences (all pieces).
  * Otherwise → returns all step moves (all pieces).
  */
-export function getValidMoves(board: CellValue[], player: PlayerNumber): CheckersMove[] {
+export function getValidMoves(board: CellValue[], player: PlayerNumber, enforceCapture = true): CheckersMove[] {
   const allJumps: CheckersMove[] = [];
   const allSteps: CheckersMove[] = [];
 
@@ -173,7 +173,7 @@ export function getValidMoves(board: CellValue[], player: PlayerNumber): Checker
     allJumps.push(...getAllJumpSequences(board, i, player));
   }
 
-  if (allJumps.length > 0) return allJumps;
+  if (enforceCapture && allJumps.length > 0) return allJumps;
 
   for (let i = 0; i < 64; i++) {
     if (!isPlayerPiece(board[i], player)) continue;
@@ -181,7 +181,7 @@ export function getValidMoves(board: CellValue[], player: PlayerNumber): Checker
       allSteps.push({ from: i, to, jumped: [] });
     }
   }
-  return allSteps;
+  return [...allJumps, ...allSteps];
 }
 
 // ── Move application ──────────────────────────────────────────────────────────

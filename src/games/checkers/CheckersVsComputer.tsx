@@ -51,9 +51,9 @@ function heuristic(board: CellValue[], ai: PlayerNumber): number {
     score += sign * (3.5 - centerDist) * 0.05;
   }
 
-  // Mobility bonus
-  const aiMoves = getValidMoves(board, ai).length;
-  const humanMoves = getValidMoves(board, human).length;
+  // Mobility bonus (enforceCapture=true for heuristic consistency)
+  const aiMoves = getValidMoves(board, ai, true).length;
+  const humanMoves = getValidMoves(board, human, true).length;
   score += (aiMoves - humanMoves) * 0.1;
 
   return score;
@@ -67,11 +67,12 @@ function minimax(
   alpha: number,
   beta: number,
   maximizing: boolean,
-  ai: PlayerNumber
+  ai: PlayerNumber,
+  enforceCapture: boolean
 ): number {
   const human: PlayerNumber = ai === 1 ? 2 : 1;
   const currentPlayer: PlayerNumber = maximizing ? ai : human;
-  const moves = getValidMoves(board, currentPlayer);
+  const moves = getValidMoves(board, currentPlayer, enforceCapture);
 
   if (moves.length === 0) {
     return maximizing ? -(10000 + depth) : (10000 + depth);
@@ -81,7 +82,7 @@ function minimax(
   if (maximizing) {
     let best = -Infinity;
     for (const move of moves) {
-      best = Math.max(best, minimax(applyMove(board, move), depth - 1, alpha, beta, false, ai));
+      best = Math.max(best, minimax(applyMove(board, move), depth - 1, alpha, beta, false, ai, enforceCapture));
       alpha = Math.max(alpha, best);
       if (beta <= alpha) break;
     }
@@ -89,7 +90,7 @@ function minimax(
   } else {
     let best = Infinity;
     for (const move of moves) {
-      best = Math.min(best, minimax(applyMove(board, move), depth - 1, alpha, beta, true, ai));
+      best = Math.min(best, minimax(applyMove(board, move), depth - 1, alpha, beta, true, ai, enforceCapture));
       beta = Math.min(beta, best);
       if (beta <= alpha) break;
     }
@@ -97,12 +98,12 @@ function minimax(
   }
 }
 
-function getBestMove(board: CellValue[], ai: PlayerNumber, depth: number): CheckersMove {
-  const moves = getValidMoves(board, ai);
+function getBestMove(board: CellValue[], ai: PlayerNumber, depth: number, enforceCapture: boolean): CheckersMove {
+  const moves = getValidMoves(board, ai, enforceCapture);
   let bestVal = -Infinity;
   let bestMove = moves[0];
   for (const move of moves) {
-    const val = minimax(applyMove(board, move), depth - 1, -Infinity, Infinity, false, ai);
+    const val = minimax(applyMove(board, move), depth - 1, -Infinity, Infinity, false, ai, enforceCapture);
     if (val > bestVal) { bestVal = val; bestMove = move; }
   }
   return bestMove;
@@ -123,6 +124,10 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
 
   const [board, setBoard] = useState<CellValue[]>([...INITIAL_BOARD]);
   const [isComputerTurn, setIsComputerTurn] = useState(!goFirst);
+  const [forcedCapture, setForcedCapture] = useState(true);
+  // Ref so AI effect and commitMove always read the latest value without stale closures
+  const forcedCaptureRef = useRef(true);
+  forcedCaptureRef.current = forcedCapture;
 
   // Position history for repetition draw — keyed by boardKey(board, nextTurn)
   // P1 always moves first, so initial position key uses turn=1
@@ -153,7 +158,8 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     if (!isComputerTurn || gameOver) return;
     const delay = difficulty === 'impossible' ? 600 : 400;
     const id = setTimeout(() => {
-      const move = getBestMove(board, aiPlayer, DEPTH[difficulty]);
+      const ec = forcedCaptureRef.current;
+      const move = getBestMove(board, aiPlayer, DEPTH[difficulty], ec);
       const newBoard = applyMove(board, move);
       setLastMove({ from: move.from, to: move.to });
       setBoard(newBoard);
@@ -168,7 +174,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
         if (count >= 3) {
           setGameResult('draw');
         } else {
-          const humanMoves = getValidMoves(newBoard, humanPlayer);
+          const humanMoves = getValidMoves(newBoard, humanPlayer, ec);
           if (humanMoves.length === 0) setGameResult(aiPlayer);
           else setIsComputerTurn(false);
         }
@@ -178,14 +184,14 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isComputerTurn, gameOver, difficulty]);
 
-  // Pieces that must move when a capture is mandatory
+  // Pieces that must move when a capture is mandatory (empty when forced capture is off)
   const forcedPieces = useMemo((): Set<number> => {
-    if (isComputerTurn || gameOver || mustContinueFrom !== null) return new Set();
+    if (isComputerTurn || gameOver || mustContinueFrom !== null || !forcedCapture) return new Set();
     const activeBoard = pendingBoard ?? board;
-    const validMoves = getValidMoves(activeBoard, humanPlayer);
+    const validMoves = getValidMoves(activeBoard, humanPlayer, true);
     if (!validMoves.some(m => m.jumped.length > 0)) return new Set();
     return new Set(validMoves.map(m => m.from));
-  }, [isComputerTurn, gameOver, mustContinueFrom, pendingBoard, board, humanPlayer]);
+  }, [isComputerTurn, gameOver, mustContinueFrom, forcedCapture, pendingBoard, board, humanPlayer]);
 
   // Valid destinations for selected piece
   const validDestinations = useMemo((): Set<number> => {
@@ -197,13 +203,16 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     }
     if (selectedPiece === null) return new Set();
 
-    const validMoves = getValidMoves(activeBoard, humanPlayer);
+    const validMoves = getValidMoves(activeBoard, humanPlayer, forcedCapture);
     const hasJumps = validMoves.some(m => m.jumped.length > 0);
-    if (hasJumps) {
+    if (forcedCapture && hasJumps) {
       return new Set(getImmediateJumps(activeBoard, selectedPiece, humanPlayer).map(j => j.to));
     }
-    return new Set(getStepMoves(activeBoard, selectedPiece, humanPlayer));
-  }, [selectedPiece, mustContinueFrom, pendingBoard, board, isComputerTurn, gameOver, humanPlayer]);
+    return new Set([
+      ...getImmediateJumps(activeBoard, selectedPiece, humanPlayer).map(j => j.to),
+      ...getStepMoves(activeBoard, selectedPiece, humanPlayer),
+    ]);
+  }, [selectedPiece, mustContinueFrom, pendingBoard, board, isComputerTurn, gameOver, humanPlayer, forcedCapture]);
 
   const commitMove = useCallback((newBoard: CellValue[], from: number, to: number) => {
     setLastMove({ from, to });
@@ -223,7 +232,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
       if (count >= 3) {
         setGameResult('draw');
       } else {
-        const aiMoves = getValidMoves(newBoard, aiPlayer);
+        const aiMoves = getValidMoves(newBoard, aiPlayer, forcedCaptureRef.current);
         if (aiMoves.length === 0) setGameResult(humanPlayer);
         else setIsComputerTurn(true);
       }
@@ -268,9 +277,11 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
 
     // Select a piece
     if (isPlayerPiece(activeBoard[idx], humanPlayer)) {
-      const validMoves = getValidMoves(activeBoard, humanPlayer);
-      const hasJumps = validMoves.some(m => m.jumped.length > 0);
-      if (hasJumps && getImmediateJumps(activeBoard, idx, humanPlayer).length === 0) return;
+      if (forcedCapture) {
+        const validMoves = getValidMoves(activeBoard, humanPlayer, true);
+        const hasJumps = validMoves.some(m => m.jumped.length > 0);
+        if (hasJumps && getImmediateJumps(activeBoard, idx, humanPlayer).length === 0) return;
+      }
       setSelectedPiece(idx);
       setPendingBoard(null);
       setMustContinueFrom(null);
@@ -279,14 +290,9 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
 
     if (selectedPiece === null) return;
 
-    const validMoves = getValidMoves(activeBoard, humanPlayer);
-    const hasJumps = validMoves.some(m => m.jumped.length > 0);
-
-    if (hasJumps) {
-      const jumps = getImmediateJumps(activeBoard, selectedPiece, humanPlayer);
-      const jump = jumps.find(j => j.to === idx);
-      if (!jump) return;
-
+    // Try jump first, then step
+    const jump = getImmediateJumps(activeBoard, selectedPiece, humanPlayer).find(j => j.to === idx);
+    if (jump) {
       const newBoard = activeBoard.slice() as CellValue[];
       newBoard[jump.to] = newBoard[selectedPiece];
       newBoard[selectedPiece] = 0;
@@ -311,8 +317,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
       } else {
         commitMove(newBoard, selectedPiece!, jump.to);
       }
-    } else {
-      if (!validDestinations.has(idx)) return;
+    } else if (validDestinations.has(idx)) {
       const newBoard = activeBoard.slice() as CellValue[];
       newBoard[idx] = newBoard[selectedPiece];
       newBoard[selectedPiece] = 0;
@@ -345,6 +350,21 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
         <p className={`text-lg font-black ${isComputerTurn ? 'text-slate-500' : 'text-rose-700'}`}>
           {isComputerTurn ? '🤖 Computer is thinking…' : '🎯 Your turn!'}
         </p>
+      )}
+
+      {/* Forced capture toggle */}
+      {!gameOver && (
+        <div className="flex items-center gap-2 self-center">
+          <span className="text-xs font-semibold text-slate-500">Forced Capture</span>
+          <button
+            onClick={() => setForcedCapture(v => !v)}
+            disabled={mustContinueFrom !== null}
+            aria-label={forcedCapture ? 'Disable forced capture' : 'Enable forced capture'}
+            className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-40 ${forcedCapture ? 'bg-green-500' : 'bg-slate-300'}`}
+          >
+            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${forcedCapture ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+          </button>
+        </div>
       )}
 
       {mustContinueFrom !== null && !gameOver && (
