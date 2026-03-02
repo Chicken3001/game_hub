@@ -352,6 +352,12 @@ export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChang
         </p>
       )}
 
+      {!gameOver && (
+        <p className={`text-xs font-semibold px-3 py-1 rounded-full ${forcedCapture ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+          {forcedCapture ? '🔒 Forced Capture On' : 'Forced Capture Off'}
+        </p>
+      )}
+
       {mustContinueFrom !== null && !gameOver && (
         <p className="text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-300 rounded-xl px-3 py-1">
           Multi-jump! Keep capturing.

@@ -429,14 +429,17 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
           <p className="text-sm font-semibold text-rose-500">
             Your game is listed in the lobby — a friend can join from there.
           </p>
-          <div className="flex items-center gap-2 pt-1">
-            <span className="text-xs font-semibold text-rose-700">Forced Capture</span>
+          <div className="flex items-center justify-between gap-4 pt-2 w-full">
+            <div>
+              <p className="text-sm font-black text-rose-700">Forced Capture</p>
+              <p className="text-xs text-rose-400">Must jump an opponent&apos;s piece when possible</p>
+            </div>
             <button
               onClick={handleToggleForcedCapture}
               aria-label={game.forced_capture ? 'Disable forced capture' : 'Enable forced capture'}
-              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${game.forced_capture ? 'bg-green-500' : 'bg-slate-300'}`}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${game.forced_capture ? 'bg-green-500' : 'bg-slate-300'}`}
             >
-              <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${game.forced_capture ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${game.forced_capture ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </div>
         </div>
@@ -486,6 +489,12 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
                 : isMyTurn
                 ? '🎯 Your turn!'
                 : `⏳ ${opponentUsername ?? 'Opponent'}'s turn…`}
+            </p>
+          )}
+
+          {!gameOver && game.status === 'active' && (
+            <p className={`text-xs font-semibold px-3 py-1 rounded-full ${game.forced_capture ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+              {game.forced_capture ? '🔒 Forced Capture On' : 'Forced Capture Off'}
             </p>
           )}
 
