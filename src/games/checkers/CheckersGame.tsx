@@ -372,14 +372,14 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
   }
 
   async function handleToggleForcedCapture() {
-    if (game.status !== 'active') return;
+    if (game.status !== 'waiting' || myPlayer !== 1) return;
     const newVal = !game.forced_capture;
     setGame(g => ({ ...g, forced_capture: newVal }));
     await supabase
       .from('checkers_games')
       .update({ forced_capture: newVal })
       .eq('id', roomId)
-      .eq('status', 'active');
+      .eq('status', 'waiting');
   }
 
   async function handleRematch() {
@@ -423,12 +423,22 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
     <div className="flex flex-col items-center gap-6 py-4">
       {/* Waiting state */}
       {game.status === 'waiting' && myPlayer === 1 && (
-        <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-rose-200 bg-gradient-to-br from-rose-50 to-orange-50 px-8 py-8 shadow-md">
+        <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-rose-200 bg-gradient-to-br from-rose-50 to-orange-50 px-8 py-8 shadow-md w-full max-w-sm">
           <div className="text-5xl animate-bounce">⏳</div>
           <p className="text-xl font-black text-rose-800">Waiting for opponent…</p>
           <p className="text-sm font-semibold text-rose-500">
             Your game is listed in the lobby — a friend can join from there.
           </p>
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-xs font-semibold text-rose-700">Forced Capture</span>
+            <button
+              onClick={handleToggleForcedCapture}
+              aria-label={game.forced_capture ? 'Disable forced capture' : 'Enable forced capture'}
+              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${game.forced_capture ? 'bg-green-500' : 'bg-slate-300'}`}
+            >
+              <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${game.forced_capture ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
         </div>
       )}
 
@@ -477,21 +487,6 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
                 ? '🎯 Your turn!'
                 : `⏳ ${opponentUsername ?? 'Opponent'}'s turn…`}
             </p>
-          )}
-
-          {/* Forced capture toggle — either player can flip it */}
-          {!isSpectator && (
-            <div className="flex items-center gap-2 self-center">
-              <span className="text-xs font-semibold text-slate-500">Forced Capture</span>
-              <button
-                onClick={handleToggleForcedCapture}
-                disabled={mustContinueFrom !== null}
-                aria-label={game.forced_capture ? 'Disable forced capture' : 'Enable forced capture'}
-                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-40 ${game.forced_capture ? 'bg-green-500' : 'bg-slate-300'}`}
-              >
-                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${game.forced_capture ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
-              </button>
-            </div>
           )}
 
           {mustContinueFrom !== null && (

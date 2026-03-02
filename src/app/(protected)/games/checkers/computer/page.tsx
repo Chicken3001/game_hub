@@ -46,6 +46,7 @@ const DIFFICULTIES: { value: Difficulty; label: string; emoji: string; descripti
 export default function CheckersComputerPage() {
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
   const [goFirst, setGoFirst] = useState<boolean | null>(null);
+  const [forcedCapture, setForcedCapture] = useState(true);
 
   // ── Difficulty picker ──────────────────────────────────────────────────────
   if (!difficulty) {
@@ -103,6 +104,19 @@ export default function CheckersComputerPage() {
             <p className="font-black text-slate-700 text-lg">🤖 Computer goes first</p>
             <p className="text-sm text-slate-400">You play Black and respond to the computer</p>
           </button>
+          <div className="flex items-center justify-between rounded-2xl border-2 border-slate-200 bg-white px-5 py-4 shadow">
+            <div>
+              <p className="font-black text-slate-700">Forced Capture</p>
+              <p className="text-sm text-slate-400">Must jump an opponent&apos;s piece when possible</p>
+            </div>
+            <button
+              onClick={() => setForcedCapture(v => !v)}
+              aria-label={forcedCapture ? 'Disable forced capture' : 'Enable forced capture'}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${forcedCapture ? 'bg-green-500' : 'bg-slate-300'}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${forcedCapture ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -127,6 +141,7 @@ export default function CheckersComputerPage() {
       <CheckersVsComputer
         difficulty={difficulty}
         goFirst={goFirst}
+        forcedCapture={forcedCapture}
         onChangeSettings={() => setDifficulty(null)}
       />
     </div>

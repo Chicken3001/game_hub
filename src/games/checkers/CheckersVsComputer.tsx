@@ -114,19 +114,19 @@ function getBestMove(board: CellValue[], ai: PlayerNumber, depth: number, enforc
 interface Props {
   difficulty: Difficulty;
   goFirst: boolean;       // true = human goes first (human=P1 Red, AI=P2 Black)
+  forcedCapture: boolean;
   onChangeSettings: () => void;
 }
 
-export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Props) {
+export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChangeSettings }: Props) {
   const router = useRouter();
   const humanPlayer: PlayerNumber = goFirst ? 1 : 2;
   const aiPlayer: PlayerNumber = goFirst ? 2 : 1;
 
   const [board, setBoard] = useState<CellValue[]>([...INITIAL_BOARD]);
   const [isComputerTurn, setIsComputerTurn] = useState(!goFirst);
-  const [forcedCapture, setForcedCapture] = useState(true);
   // Ref so AI effect and commitMove always read the latest value without stale closures
-  const forcedCaptureRef = useRef(true);
+  const forcedCaptureRef = useRef(forcedCapture);
   forcedCaptureRef.current = forcedCapture;
 
   // Position history for repetition draw — keyed by boardKey(board, nextTurn)
@@ -350,21 +350,6 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
         <p className={`text-lg font-black ${isComputerTurn ? 'text-slate-500' : 'text-rose-700'}`}>
           {isComputerTurn ? '🤖 Computer is thinking…' : '🎯 Your turn!'}
         </p>
-      )}
-
-      {/* Forced capture toggle */}
-      {!gameOver && (
-        <div className="flex items-center gap-2 self-center">
-          <span className="text-xs font-semibold text-slate-500">Forced Capture</span>
-          <button
-            onClick={() => setForcedCapture(v => !v)}
-            disabled={mustContinueFrom !== null}
-            aria-label={forcedCapture ? 'Disable forced capture' : 'Enable forced capture'}
-            className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-40 ${forcedCapture ? 'bg-green-500' : 'bg-slate-300'}`}
-          >
-            <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${forcedCapture ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
-          </button>
-        </div>
       )}
 
       {mustContinueFrom !== null && !gameOver && (
