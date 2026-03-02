@@ -178,6 +178,15 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isComputerTurn, gameOver, difficulty]);
 
+  // Pieces that must move when a capture is mandatory
+  const forcedPieces = useMemo((): Set<number> => {
+    if (isComputerTurn || gameOver || mustContinueFrom !== null) return new Set();
+    const activeBoard = pendingBoard ?? board;
+    const validMoves = getValidMoves(activeBoard, humanPlayer);
+    if (!validMoves.some(m => m.jumped.length > 0)) return new Set();
+    return new Set(validMoves.map(m => m.from));
+  }, [isComputerTurn, gameOver, mustContinueFrom, pendingBoard, board, humanPlayer]);
+
   // Valid destinations for selected piece
   const validDestinations = useMemo((): Set<number> => {
     if (isComputerTurn || gameOver) return new Set();
@@ -353,6 +362,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
             const cell = activeBoard[idx];
             const isSelected = selectedPiece === idx || mustContinueFrom === idx;
             const isValidDest = validDestinations.has(idx);
+            const isForcedPiece = !isSelected && forcedPieces.has(idx);
             const isHuman = isPlayerPiece(cell, humanPlayer);
             const cellOwner = cell === 0 ? null : (cell === 1 || cell === 3 ? 1 : 2);
             const king = isKing(cell);
@@ -377,7 +387,7 @@ export function CheckersVsComputer({ difficulty, goFirst, onChangeSettings }: Pr
                     ${cellOwner === 1
                       ? 'bg-rose-500 border-2 border-rose-700 text-yellow-300'
                       : 'bg-slate-800 border-2 border-slate-600 text-yellow-300'}
-                    ${isSelected ? 'ring-4 ring-yellow-400' : lastMove?.to === idx ? 'ring-2 ring-white/80' : isValidDest ? 'ring-2 ring-yellow-300' : ''}
+                    ${isSelected ? 'ring-4 ring-yellow-400' : isForcedPiece ? 'ring-4 ring-green-400' : lastMove?.to === idx ? 'ring-2 ring-white/80' : isValidDest ? 'ring-2 ring-yellow-300' : ''}
                   `}>
                     {king ? '♛' : ''}
                   </div>
