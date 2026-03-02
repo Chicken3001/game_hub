@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/Button';
+import { ForcedCaptureBadge } from '@/components/ForcedCaptureBadge';
 import { CheckersGame } from '@/games/checkers';
 import type { CheckersGameRow } from '@/games/checkers';
 
@@ -30,6 +31,7 @@ export default async function CheckersRoomPage({
           <Button variant="back" size="sm">🔴 Checkers</Button>
         </Link>
         <h1 className="text-2xl font-black text-rose-900">Game Room</h1>
+        <ForcedCaptureBadge on={game.forced_capture} />
       </div>
       <CheckersGame
         initialGame={game as CheckersGameRow}
