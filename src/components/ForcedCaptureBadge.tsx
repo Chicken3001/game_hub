@@ -21,7 +21,7 @@ export function ForcedCaptureBadge({ on }: Props) {
         <>
           {/* Backdrop to close on tap-outside */}
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 mt-1.5 z-20">
+          <div className="absolute top-full right-0 mt-1.5 z-20">
             <div className="rounded-xl bg-slate-800 px-3 py-2 text-xs text-white shadow-lg whitespace-nowrap">
               <p className="font-black">{on ? 'Forced Capture: On' : 'Forced Capture: Off'}</p>
               <p className="text-white/70">{on ? 'You must jump when possible' : 'Jumping is optional'}</p>

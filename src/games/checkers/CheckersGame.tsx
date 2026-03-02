@@ -102,7 +102,9 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
       .single()
       .then(({ data, error }) => {
         setJoining(false);
-        if (error || !data) {
+        if (!error && data) {
+          setGame(data as CheckersGameRow);
+        } else {
           supabase
             .from('checkers_games')
             .select('*')
