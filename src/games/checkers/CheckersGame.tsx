@@ -245,12 +245,16 @@ export function CheckersGame({ initialGame, currentUserId, roomId }: Props) {
     const next: PlayerNumber = myPlayer === 1 ? 2 : 1;
     const winner = checkWinner(newBoard, next);
 
-    // Repetition draw: same position (board + whose turn) seen 3 times
+    // Repetition draw: each player's last 3 positions on their turn are identical
+    // (detects back-and-forth loops without flagging positions from earlier in the game)
     const key = boardKey(newBoard, next);
     const currentHistory = game.position_history ?? [];
     const newHistory = [...currentHistory, key];
-    const repetitionCount = newHistory.filter(k => k === key).length;
-    const isRepetitionDraw = repetitionCount >= 3;
+    const p1Recent = newHistory.filter(k => k.endsWith('1')).slice(-3);
+    const p2Recent = newHistory.filter(k => k.endsWith('2')).slice(-3);
+    const isRepetitionDraw =
+      p1Recent.length === 3 && p1Recent.every(k => k === p1Recent[0]) &&
+      p2Recent.length === 3 && p2Recent.every(k => k === p2Recent[0]);
 
     const newStatus: GameStatus =
       isRepetitionDraw ? 'draw'

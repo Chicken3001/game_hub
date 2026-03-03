@@ -129,11 +129,8 @@ export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChang
   const forcedCaptureRef = useRef(forcedCapture);
   forcedCaptureRef.current = forcedCapture;
 
-  // Position history for repetition draw — keyed by boardKey(board, nextTurn)
-  // P1 always moves first, so initial position key uses turn=1
-  const positionHistoryRef = useRef<Map<string, number>>(
-    new Map([[boardKey([...INITIAL_BOARD], 1), 1]])
-  );
+  // Position history for repetition draw — ordered list of boardKey(board, nextTurn)
+  const positionHistoryRef = useRef<string[]>([boardKey([...INITIAL_BOARD], 1)]);
 
   // Multi-step move state
   const [selectedPiece, setSelectedPiece] = useState<number | null>(null);
@@ -169,9 +166,13 @@ export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChang
         setGameResult(w);
       } else {
         const key = boardKey(newBoard, humanPlayer);
-        const count = (positionHistoryRef.current.get(key) ?? 0) + 1;
-        positionHistoryRef.current.set(key, count);
-        if (count >= 3) {
+        positionHistoryRef.current.push(key);
+        // Draw: each player's last 3 positions on their turn are identical
+        const hist = positionHistoryRef.current;
+        const p1Recent = hist.filter(k => k.endsWith('1')).slice(-3);
+        const p2Recent = hist.filter(k => k.endsWith('2')).slice(-3);
+        if (p1Recent.length === 3 && p1Recent.every(k => k === p1Recent[0]) &&
+            p2Recent.length === 3 && p2Recent.every(k => k === p2Recent[0])) {
           setGameResult('draw');
         } else {
           const humanMoves = getValidMoves(newBoard, humanPlayer, ec);
@@ -227,9 +228,13 @@ export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChang
       setGameResult(w);
     } else {
       const key = boardKey(newBoard, aiPlayer);
-      const count = (positionHistoryRef.current.get(key) ?? 0) + 1;
-      positionHistoryRef.current.set(key, count);
-      if (count >= 3) {
+      positionHistoryRef.current.push(key);
+      // Draw: each player's last 3 positions on their turn are identical
+      const hist = positionHistoryRef.current;
+      const p1Recent = hist.filter(k => k.endsWith('1')).slice(-3);
+      const p2Recent = hist.filter(k => k.endsWith('2')).slice(-3);
+      if (p1Recent.length === 3 && p1Recent.every(k => k === p1Recent[0]) &&
+          p2Recent.length === 3 && p2Recent.every(k => k === p2Recent[0])) {
         setGameResult('draw');
       } else {
         const aiMoves = getValidMoves(newBoard, aiPlayer, forcedCaptureRef.current);
@@ -335,7 +340,7 @@ export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChang
     setMustContinueFrom(null);
     setLastMove(null);
     jumpOriginRef.current = null;
-    positionHistoryRef.current = new Map([[boardKey([...INITIAL_BOARD], 1), 1]]);
+    positionHistoryRef.current = [boardKey([...INITIAL_BOARD], 1)];
     setGameResult(null);
     setIsComputerTurn(!goFirst);
   }
