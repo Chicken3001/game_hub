@@ -11,8 +11,8 @@ import {
 function CardDisplay({ card, faceDown, small }: { card?: string; faceDown?: boolean; small?: boolean }) {
   if (faceDown || !card) {
     return (
-      <div className={`${small ? 'w-8 h-11' : 'w-10 h-14'} rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 border-2 border-blue-400 shadow-md flex items-center justify-center`}>
-        <span className={`${small ? 'text-xs' : 'text-sm'} text-blue-200 font-black`}>?</span>
+      <div className={`${small ? 'w-7 h-10' : 'w-10 h-14'} rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 border-2 border-blue-400 shadow-md flex items-center justify-center`}>
+        <span className={`${small ? 'text-[10px]' : 'text-sm'} text-blue-200 font-black`}>?</span>
       </div>
     );
   }
@@ -22,9 +22,9 @@ function CardDisplay({ card, faceDown, small }: { card?: string; faceDown?: bool
   const color = SUIT_COLORS[suit] ?? 'text-slate-800';
 
   return (
-    <div className={`${small ? 'w-8 h-11' : 'w-10 h-14'} rounded-lg bg-white border-2 border-slate-200 shadow-md flex flex-col items-center justify-center ${color}`}>
-      <span className={`${small ? 'text-xs' : 'text-sm'} font-black leading-none`}>{RANK_DISPLAY[rank]}</span>
-      <span className={`${small ? 'text-xs' : 'text-sm'} leading-none`}>{SUIT_SYMBOLS[suit]}</span>
+    <div className={`${small ? 'w-7 h-10' : 'w-10 h-14'} rounded-lg bg-white border-2 border-slate-200 shadow-md flex flex-col items-center justify-center ${color}`}>
+      <span className={`${small ? 'text-[10px]' : 'text-sm'} font-black leading-none`}>{RANK_DISPLAY[rank]}</span>
+      <span className={`${small ? 'text-[10px]' : 'text-sm'} leading-none`}>{SUIT_SYMBOLS[suit]}</span>
     </div>
   );
 }
@@ -105,6 +105,199 @@ function ActionButtons({
   );
 }
 
+// ── Seat Positioning ─────────────────────────────────────────────────────────
+
+// Positions as [top%, left%] — human always index 0 (bottom center)
+// Others distributed clockwise starting from bottom-left
+const SEAT_POSITIONS: Record<number, [number, number][]> = {
+  2: [
+    [92, 50],   // bottom center (human)
+    [2, 50],    // top center
+  ],
+  3: [
+    [92, 50],   // bottom center
+    [20, 8],    // top-left
+    [20, 92],   // top-right
+  ],
+  4: [
+    [92, 50],   // bottom center
+    [50, 2],    // left
+    [2, 50],    // top center
+    [50, 98],   // right
+  ],
+  5: [
+    [92, 50],   // bottom center
+    [70, 4],    // bottom-left
+    [15, 8],    // top-left
+    [15, 92],   // top-right
+    [70, 96],   // bottom-right
+  ],
+  6: [
+    [92, 50],   // bottom center
+    [70, 4],    // bottom-left
+    [20, 4],    // top-left
+    [2, 50],    // top center
+    [20, 96],   // top-right
+    [70, 96],   // bottom-right
+  ],
+  7: [
+    [92, 50],   // bottom center
+    [78, 6],    // lower-left
+    [42, 2],    // mid-left
+    [10, 20],   // upper-left
+    [10, 80],   // upper-right
+    [42, 98],   // mid-right
+    [78, 94],   // lower-right
+  ],
+  8: [
+    [92, 50],   // bottom center
+    [80, 6],    // lower-left
+    [48, 2],    // mid-left
+    [15, 12],   // upper-left
+    [2, 50],    // top center
+    [15, 88],   // upper-right
+    [48, 98],   // mid-right
+    [80, 94],   // lower-right
+  ],
+  9: [
+    [92, 50],   // bottom center
+    [82, 6],    // lower-left
+    [55, 2],    // mid-left
+    [25, 4],    // upper-left
+    [5, 28],    // top-left
+    [5, 72],    // top-right
+    [25, 96],   // upper-right
+    [55, 98],   // mid-right
+    [82, 94],   // lower-right
+  ],
+};
+
+// ── PlayerSeat ───────────────────────────────────────────────────────────────
+
+function PlayerSeat({
+  player,
+  isMe,
+  isAction,
+  myHoleCards,
+  revealedCards,
+  isShowdown,
+  isWaiting,
+  displayName,
+  position,
+}: {
+  player: PokerPlayerRow;
+  isMe: boolean;
+  isAction: boolean;
+  myHoleCards: string[];
+  revealedCards?: string[];
+  isShowdown: boolean;
+  isWaiting: boolean;
+  displayName: string;
+  position: [number, number];
+}) {
+  const showHoleCards = isMe && myHoleCards.length > 0;
+  const showRevealed = isShowdown && revealedCards && revealedCards.length > 0;
+  const isFoldedOrOut = player.is_folded || player.is_eliminated;
+
+  // Position badge (D / SB / BB)
+  let badge = '';
+  if (player.is_dealer) badge = 'D';
+  else if (player.is_small_blind) badge = 'SB';
+  else if (player.is_big_blind) badge = 'BB';
+
+  const isBottom = position[0] > 70;
+
+  return (
+    <div
+      className="absolute flex flex-col items-center gap-0.5"
+      style={{
+        top: `${position[0]}%`,
+        left: `${position[1]}%`,
+        transform: 'translate(-50%, -50%)',
+        zIndex: isMe ? 20 : 10,
+      }}
+    >
+      {/* Hole cards — show above seat for bottom, below name for top */}
+      {isBottom && (
+        <div className="flex gap-0.5 mb-0.5">
+          {showHoleCards && myHoleCards.map((card, i) => (
+            <CardDisplay key={i} card={card} small />
+          ))}
+          {showRevealed && revealedCards!.map((card, i) => (
+            <CardDisplay key={i} card={card} small />
+          ))}
+          {!showHoleCards && !showRevealed && !isShowdown && !isFoldedOrOut && !isWaiting && (
+            <>
+              <CardDisplay faceDown small />
+              <CardDisplay faceDown small />
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Seat chip — name, chips, badge */}
+      <div
+        className={`
+          flex flex-col items-center rounded-xl border-2 px-2 py-1 min-w-[60px] max-w-[76px] transition-all
+          ${isFoldedOrOut ? 'border-slate-400/40 bg-slate-700/60 opacity-50' : ''}
+          ${isAction ? 'border-amber-400 bg-amber-900/80 shadow-[0_0_12px_rgba(251,191,36,0.5)]' : ''}
+          ${!isAction && !isFoldedOrOut ? 'border-emerald-300/40 bg-slate-800/80' : ''}
+          ${isMe && !isFoldedOrOut ? 'border-blue-400/70 bg-blue-900/70' : ''}
+        `}
+      >
+        <div className="flex items-center gap-1">
+          <span className={`text-[11px] font-black truncate max-w-[52px] ${isMe ? 'text-blue-200' : 'text-slate-200'}`}>
+            {displayName}
+          </span>
+          {badge && (
+            <span className={`text-[9px] font-black rounded-full px-1 ${
+              badge === 'D' ? 'bg-white text-slate-900' :
+              badge === 'SB' ? 'bg-amber-400 text-amber-900' :
+              'bg-amber-500 text-white'
+            }`}>
+              {badge}
+            </span>
+          )}
+        </div>
+        <span className={`text-[11px] font-bold ${isFoldedOrOut ? 'text-slate-400' : 'text-yellow-300'}`}>
+          {player.is_eliminated ? 'Out' : player.is_folded ? 'Folded' : `${player.chips}`}
+        </span>
+        {player.is_all_in && !player.is_folded && (
+          <span className="text-[9px] font-black text-red-400">ALL IN</span>
+        )}
+        {player.hand_description && isShowdown && !player.is_folded && (
+          <span className="text-[9px] font-bold text-green-300 truncate max-w-[72px]">{player.hand_description}</span>
+        )}
+      </div>
+
+      {/* Bet chip */}
+      {player.current_bet > 0 && (
+        <div className="rounded-full bg-amber-400 border border-amber-600 px-1.5 py-0 mt-0.5">
+          <span className="text-[10px] font-black text-amber-900">{player.current_bet}</span>
+        </div>
+      )}
+
+      {/* Cards for non-bottom players */}
+      {!isBottom && (
+        <div className="flex gap-0.5 mt-0.5">
+          {showHoleCards && myHoleCards.map((card, i) => (
+            <CardDisplay key={i} card={card} small />
+          ))}
+          {showRevealed && revealedCards!.map((card, i) => (
+            <CardDisplay key={i} card={card} small />
+          ))}
+          {!showHoleCards && !showRevealed && !isShowdown && !isFoldedOrOut && !isWaiting && (
+            <>
+              <CardDisplay faceDown small />
+              <CardDisplay faceDown small />
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main PokerTable ──────────────────────────────────────────────────────────
 
 export interface PokerTableProps {
@@ -119,7 +312,7 @@ export interface PokerTableProps {
   actionOnSeat: number | null;
   myUserId: string | null;
   myHoleCards: string[];
-  revealedCards?: Record<string, string[]>; // userId → cards (for showdown in VS Computer)
+  revealedCards?: Record<string, string[]>;
   validActions: ValidAction[];
   onAction: (action: PlayerAction, amount?: number) => void;
   isMyTurn: boolean;
@@ -151,124 +344,97 @@ export function PokerTable({
   const isShowdown = phase === 'showdown';
   const isWaiting = phase === 'waiting';
 
+  // Sort players: human first (seat 0), then by seat
+  const sorted = [...players].sort((a, b) => {
+    if (a.user_id === myUserId) return -1;
+    if (b.user_id === myUserId) return 1;
+    return a.seat - b.seat;
+  });
+
+  const nonEliminated = sorted.filter(p => !p.is_eliminated);
+  const totalSeats = Math.max(nonEliminated.length, 2);
+  const positions = SEAT_POSITIONS[Math.min(totalSeats, 9)] ?? SEAT_POSITIONS[9];
+
   return (
-    <div className="flex flex-col gap-4 w-full max-w-sm">
-      {/* Hand info */}
+    <div className="flex flex-col gap-3 w-full max-w-sm">
+      {/* Hand info bar */}
       {!isWaiting && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-black text-slate-400">Hand #{handNumber}</span>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-black text-slate-500 capitalize">{phase}</span>
+            <span className="rounded-full bg-slate-700 px-2 py-0.5 text-[10px] font-black text-slate-300 capitalize">{phase}</span>
           </div>
-          <div className="text-xs font-black text-amber-600">
+          <div className="text-xs font-black text-amber-400">
             Blinds: {blindSmall}/{blindBig}
           </div>
         </div>
       )}
 
-      {/* Pot */}
-      {!isWaiting && pot > 0 && (
-        <div className="text-center">
-          <span className="rounded-full bg-amber-100 border border-amber-300 px-4 py-1.5 text-sm font-black text-amber-700 shadow-sm">
-            Pot: {pot}
-          </span>
+      {/* The Table */}
+      <div className="relative w-full" style={{ paddingBottom: '75%' }}>
+        {/* Felt oval */}
+        <div
+          className="absolute inset-[4%] rounded-[50%] border-4 border-emerald-800 shadow-[inset_0_2px_20px_rgba(0,0,0,0.4),0_4px_12px_rgba(0,0,0,0.3)]"
+          style={{
+            background: 'radial-gradient(ellipse at 50% 40%, #34d399 0%, #059669 40%, #047857 70%, #065f46 100%)',
+          }}
+        />
+
+        {/* Inner rail line */}
+        <div
+          className="absolute inset-[8%] rounded-[50%] border-2 border-emerald-400/20"
+        />
+
+        {/* Center content: pot + community cards */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1" style={{ zIndex: 5 }}>
+          {/* Pot */}
+          {!isWaiting && pot > 0 && (
+            <div className="rounded-full bg-black/30 backdrop-blur-sm px-3 py-0.5 border border-amber-400/30">
+              <span className="text-xs font-black text-amber-300">Pot: {pot}</span>
+            </div>
+          )}
+
+          {/* Community cards */}
+          {!isWaiting && (
+            <div className="flex gap-1">
+              {communityCards.map((card, i) => (
+                <CardDisplay key={i} card={card} small />
+              ))}
+              {phase !== 'showdown' && Array.from({ length: 5 - communityCards.length }, (_, i) => (
+                <div key={`e-${i}`} className="w-7 h-10 rounded-lg border border-dashed border-emerald-400/30" />
+              ))}
+            </div>
+          )}
         </div>
-      )}
 
-      {/* Community cards */}
-      {!isWaiting && communityCards.length > 0 && (
-        <div className="flex justify-center gap-1.5">
-          {communityCards.map((card, i) => (
-            <CardDisplay key={i} card={card} />
-          ))}
-          {/* Placeholder slots for unrevealed community cards */}
-          {Array.from({ length: 5 - communityCards.length }, (_, i) => (
-            <div key={`empty-${i}`} className="w-10 h-14 rounded-lg border-2 border-dashed border-slate-200" />
-          ))}
-        </div>
-      )}
+        {/* Player seats */}
+        {nonEliminated.map((player, i) => {
+          const isMe = player.user_id === myUserId;
+          const isAction = player.seat === actionOnSeat && !isShowdown;
+          const displayName = isMe ? 'You' : usernames?.[player.user_id] ?? `Seat ${player.seat + 1}`;
+          const pos = positions[i] ?? positions[positions.length - 1];
 
-      {/* Players list */}
-      <div className="flex flex-col gap-1.5">
-        {players
-          .sort((a, b) => a.seat - b.seat)
-          .map(player => {
-            const isMe = player.user_id === myUserId;
-            const isAction = player.seat === actionOnSeat && !isShowdown;
-            const showHoleCards = isMe && myHoleCards.length > 0;
-            const showRevealed = isShowdown && revealedCards?.[player.user_id];
-            const displayName = isMe ? 'You' : usernames?.[player.user_id] ?? `Seat ${player.seat + 1}`;
-
-            return (
-              <div
-                key={player.id || player.user_id}
-                className={`
-                  flex items-center gap-2 rounded-xl border-2 px-3 py-2 transition-all
-                  ${player.is_eliminated ? 'border-slate-200 bg-slate-50 opacity-50' : ''}
-                  ${player.is_folded && !player.is_eliminated ? 'border-slate-200 bg-slate-50 opacity-60' : ''}
-                  ${isAction ? 'border-amber-400 bg-amber-50 shadow-md' : ''}
-                  ${!isAction && !player.is_folded && !player.is_eliminated ? 'border-slate-200 bg-white shadow-sm' : ''}
-                  ${isMe && !player.is_folded && !player.is_eliminated ? 'border-blue-300 bg-blue-50' : ''}
-                `}
-              >
-                {/* Seat badges */}
-                <div className="flex flex-col items-center gap-0.5 w-6 shrink-0">
-                  <span className="text-xs font-black text-slate-400">{player.seat + 1}</span>
-                  {player.is_dealer && <span className="text-xs" title="Dealer">D</span>}
-                  {player.is_small_blind && <span className="text-[10px] text-amber-500 font-black">SB</span>}
-                  {player.is_big_blind && <span className="text-[10px] text-amber-600 font-black">BB</span>}
-                </div>
-
-                {/* Player info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className={`text-sm font-black truncate ${isMe ? 'text-blue-700' : 'text-slate-800'}`}>
-                      {displayName}
-                    </span>
-                    {player.is_eliminated && <span className="text-xs text-slate-400">(out)</span>}
-                    {player.is_folded && !player.is_eliminated && <span className="text-xs text-slate-400">(folded)</span>}
-                    {player.is_all_in && !player.is_folded && <span className="text-xs font-black text-red-500">ALL IN</span>}
-                  </div>
-                  {player.hand_description && isShowdown && !player.is_folded && (
-                    <span className="text-xs font-semibold text-green-600">{player.hand_description}</span>
-                  )}
-                </div>
-
-                {/* Hole cards */}
-                <div className="flex gap-0.5 shrink-0">
-                  {showHoleCards && myHoleCards.map((card, i) => (
-                    <CardDisplay key={i} card={card} small />
-                  ))}
-                  {showRevealed && revealedCards![player.user_id].map((card, i) => (
-                    <CardDisplay key={i} card={card} small />
-                  ))}
-                  {player.show_cards && !showHoleCards && !showRevealed && isShowdown && (
-                    <span className="text-xs text-slate-400">shown</span>
-                  )}
-                  {!showHoleCards && !showRevealed && !isShowdown && !player.is_folded && !player.is_eliminated && !isWaiting && (
-                    <>
-                      <CardDisplay faceDown small />
-                      <CardDisplay faceDown small />
-                    </>
-                  )}
-                </div>
-
-                {/* Chips & bet */}
-                <div className="flex flex-col items-end shrink-0">
-                  <span className="text-sm font-black text-slate-700">{player.chips}</span>
-                  {player.current_bet > 0 && (
-                    <span className="text-xs font-semibold text-amber-600">bet {player.current_bet}</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          return (
+            <PlayerSeat
+              key={player.id || player.user_id}
+              player={player}
+              isMe={isMe}
+              isAction={isAction}
+              myHoleCards={isMe ? myHoleCards : []}
+              revealedCards={revealedCards?.[player.user_id]}
+              isShowdown={isShowdown}
+              isWaiting={isWaiting}
+              displayName={displayName}
+              position={pos}
+            />
+          );
+        })}
       </div>
 
       {/* Action buttons */}
       {isMyTurn && validActions.length > 0 && !isShowdown && (
-        <div className="pt-2">
-          <p className="text-center text-sm font-black text-blue-700 mb-2">Your turn!</p>
+        <div>
+          <p className="text-center text-sm font-black text-blue-400 mb-2">Your turn!</p>
           <ActionButtons
             validActions={validActions}
             onAction={onAction}
@@ -277,10 +443,10 @@ export function PokerTable({
         </div>
       )}
 
-      {/* Status line when not my turn */}
+      {/* Waiting status */}
       {!isMyTurn && !isShowdown && !isWaiting && actionOnSeat !== null && (
-        <p className="text-center text-sm font-semibold text-slate-500">
-          Waiting for Seat {actionOnSeat + 1}…
+        <p className="text-center text-sm font-semibold text-slate-400">
+          Waiting for {usernames?.[players.find(p => p.seat === actionOnSeat)?.user_id ?? ''] ?? `Seat ${actionOnSeat + 1}`}…
         </p>
       )}
     </div>

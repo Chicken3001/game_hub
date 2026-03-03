@@ -33,6 +33,7 @@ interface LocalPlayer {
   holeCards: string[];
   isAi: boolean;
   name: string;
+  hasActedThisRound: boolean;
 }
 
 const AI_NAMES = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Hank'];
@@ -72,6 +73,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
       currentBet: 0, totalBet: 0, isFolded: false, isAllIn: false,
       isEliminated: false, isDealer: false, isSmallBlind: false, isBigBlind: false,
       handDescription: null, showCards: false, holeCards: [], isAi: false, name: 'You',
+      hasActedThisRound: false,
     });
     for (let i = 0; i < numOpponents; i++) {
       all.push({
@@ -79,6 +81,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
         currentBet: 0, totalBet: 0, isFolded: false, isAllIn: false,
         isEliminated: false, isDealer: false, isSmallBlind: false, isBigBlind: false,
         handDescription: null, showCards: false, holeCards: [], isAi: true, name: AI_NAMES[i] ?? `Bot ${i + 1}`,
+        hasActedThisRound: false,
       });
     }
     return all;
@@ -100,6 +103,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
   const [winnerId, setWinnerId] = useState<string | null>(null);
 
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const advancePhaseRef = useRef<() => void>(() => {});
 
   const activePlayers = players.filter(p => !p.isEliminated);
   const activeSeats = activePlayers.map(p => p.seat).sort((a, b) => a - b);
@@ -155,7 +159,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     let idx = 0;
 
     const updated = players.map(p => {
-      if (p.isEliminated) return { ...p, holeCards: [], currentBet: 0, totalBet: 0, isFolded: false, isAllIn: false, isDealer: false, isSmallBlind: false, isBigBlind: false, handDescription: null, showCards: false };
+      if (p.isEliminated) return { ...p, holeCards: [], currentBet: 0, totalBet: 0, isFolded: false, isAllIn: false, isDealer: false, isSmallBlind: false, isBigBlind: false, handDescription: null, showCards: false, hasActedThisRound: false };
       const cards = [newDeck[idx], newDeck[idx + 1]];
       idx += 2;
 
@@ -182,19 +186,40 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
         isBigBlind: isBb,
         handDescription: null,
         showCards: false,
+        hasActedThisRound: false,
       };
     });
 
     const totalPot = updated.reduce((sum, p) => sum + p.totalBet, 0);
+
+    // Determine actual first to act — skip players all-in from blind posting
+    const allinFromBlinds = new Set(updated.filter(p => p.isAllIn).map(p => p.seat));
+    let actualFirst: number | null = firstSeat;
+    if (allinFromBlinds.has(firstSeat)) {
+      const canActSeats = seats.filter(s => !allinFromBlinds.has(s));
+      if (canActSeats.length === 0) {
+        // Everyone all-in from blinds — no one can act
+        actualFirst = null;
+      } else {
+        const after = canActSeats.filter(s => s > firstSeat);
+        actualFirst = after.length > 0 ? after[0] : canActSeats[0];
+      }
+    }
+
     setPlayers(updated);
     setDeckIdx(idx);
     setCommunityCards([]);
     setPot(totalPot);
     setCurrentBet(bl.big);
     setPhase('preflop');
-    setActionOnSeat(firstSeat);
+    setActionOnSeat(actualFirst);
     setHandNumber(h => h + 1);
     setLastAction(null);
+
+    // If no one can act (all-in from blinds), auto-advance through all streets
+    if (actualFirst === null) {
+      setTimeout(() => advancePhaseRef.current(), 500);
+    }
   }, [players, dealerSeat, gameStartedAt, BLIND_INTERVAL]);
 
   // Auto-start first hand
@@ -233,8 +258,8 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     setCommunityCards(newCommunity);
     setPhase(nextPhase);
 
-    // Reset bets
-    const updated = players.map(p => ({ ...p, currentBet: 0 }));
+    // Reset bets and hasActedThisRound for the new betting round
+    const updated = players.map(p => ({ ...p, currentBet: 0, hasActedThisRound: false }));
     setPlayers(updated);
     setCurrentBet(0);
 
@@ -253,6 +278,9 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, communityCards, deck, deckIdx, players, activeSeats, dealerSeat]);
+
+  // Keep ref in sync so setTimeout always calls the latest version
+  advancePhaseRef.current = advancePhase;
 
   const advancePhaseAfterAllIn = useCallback((currentPhase: PokerPhase, community: string[], dIdx: number) => {
     const phaseOrder: PokerPhase[] = ['preflop', 'flop', 'turn', 'river', 'showdown'];
@@ -290,89 +318,91 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     runShowdownWith(communityCards);
   }
 
+  // Uses setPlayers(prev => ...) to always read the latest player state,
+  // avoiding stale closure bugs when called from advancePhaseAfterAllIn.
   function runShowdownWith(community: string[]) {
-    const active = players.filter(p => !p.isEliminated);
-    const nonFolded = active.filter(p => !p.isFolded);
+    setPlayers(prev => {
+      const active = prev.filter(p => !p.isEliminated);
 
-    // Evaluate hands
-    const evaluated = active.map(p => {
-      if (p.isFolded) return { ...p, score: 0, handDescription: null, showCards: false };
-      const allCards = [...p.holeCards, ...community];
-      const { score, name } = evaluateHand(allCards);
-      return { ...p, score, handDescription: name, showCards: true };
-    });
+      // Evaluate hands
+      const evaluated = active.map(p => {
+        if (p.isFolded) return { ...p, score: 0, handDescription: null, showCards: false };
+        const allCards = [...p.holeCards, ...community];
+        const { score, name } = evaluateHand(allCards);
+        return { ...p, score, handDescription: name, showCards: true };
+      });
 
-    // Simple pot awarding (side pots)
-    const bettors = evaluated.filter(p => p.totalBet > 0 || !p.isFolded);
-    const sorted = [...bettors].sort((a, b) => a.totalBet - b.totalBet);
-    let totalPot = evaluated.reduce((sum, p) => sum + p.totalBet, 0);
+      // Side pot awarding
+      const bettors = evaluated.filter(p => p.totalBet > 0 || !p.isFolded);
+      const sorted = [...bettors].sort((a, b) => a.totalBet - b.totalBet);
 
-    const processed = new Set<string>();
-    let prevLevel = 0;
+      const processed = new Set<string>();
+      let prevLevel = 0;
 
-    for (const player of sorted) {
-      if (player.totalBet <= prevLevel) { processed.add(player.userId); continue; }
+      for (const player of sorted) {
+        if (player.totalBet <= prevLevel) { processed.add(player.userId); continue; }
 
-      const level = player.totalBet;
-      const contribution = level - prevLevel;
-      let potAmount = 0;
-      for (const p of evaluated) {
-        if (p.totalBet > prevLevel) {
-          potAmount += Math.min(p.totalBet - prevLevel, contribution);
+        const level = player.totalBet;
+        const contribution = level - prevLevel;
+        let potAmount = 0;
+        for (const p of evaluated) {
+          if (p.totalBet > prevLevel) {
+            potAmount += Math.min(p.totalBet - prevLevel, contribution);
+          }
         }
+
+        const eligible = evaluated.filter(p => !p.isFolded && !processed.has(p.userId) && p.totalBet >= level);
+        if (eligible.length > 0) {
+          const bestScore = Math.max(...eligible.map(p => p.score ?? 0));
+          const winners = eligible.filter(p => p.score === bestScore);
+          const share = Math.floor(potAmount / winners.length);
+          for (const w of winners) {
+            const idx = evaluated.findIndex(p => p.userId === w.userId);
+            if (idx !== -1) evaluated[idx] = { ...evaluated[idx], chips: evaluated[idx].chips + share };
+          }
+        }
+
+        processed.add(player.userId);
+        prevLevel = level;
       }
 
-      // Eligible: non-folded, not yet fully processed, bet >= level
-      const eligible = evaluated.filter(p => !p.isFolded && !processed.has(p.userId) && p.totalBet >= level);
-      if (eligible.length > 0) {
-        const bestScore = Math.max(...eligible.map(p => p.score ?? 0));
-        const winners = eligible.filter(p => p.score === bestScore);
-        const share = Math.floor(potAmount / winners.length);
-        for (const w of winners) {
-          const idx = evaluated.findIndex(p => p.userId === w.userId);
-          if (idx !== -1) evaluated[idx] = { ...evaluated[idx], chips: evaluated[idx].chips + share };
-        }
-      }
-
-      processed.add(player.userId);
-      prevLevel = level;
-    }
-
-    // Mark eliminated
-    const final = evaluated.map(p => ({
-      ...p,
-      isEliminated: p.isEliminated || p.chips === 0,
-      totalBet: 0,
-      currentBet: 0,
-    }));
-
-    // Build back LocalPlayer array
-    const result: LocalPlayer[] = players.map(p => {
-      const ev = final.find(e => e.userId === p.userId);
-      if (!ev) return p;
-      return {
+      // Mark eliminated
+      const final = evaluated.map(p => ({
         ...p,
-        chips: ev.chips,
-        isEliminated: ev.isEliminated,
-        handDescription: ev.handDescription,
-        showCards: ev.showCards,
+        isEliminated: p.isEliminated || p.chips === 0,
         totalBet: 0,
         currentBet: 0,
-      };
+      }));
+
+      // Build back LocalPlayer array
+      const result: LocalPlayer[] = prev.map(p => {
+        const ev = final.find(e => e.userId === p.userId);
+        if (!ev) return p;
+        return {
+          ...p,
+          chips: ev.chips,
+          isEliminated: ev.isEliminated,
+          handDescription: ev.handDescription,
+          showCards: ev.showCards,
+          totalBet: 0,
+          currentBet: 0,
+        };
+      });
+
+      setPhase('showdown');
+      setActionOnSeat(null);
+      setPot(0);
+      setLastAction('showdown');
+
+      // Check if game is over
+      const remaining = result.filter(p => !p.isEliminated);
+      if (remaining.length <= 1) {
+        setGameOver(true);
+        setWinnerId(remaining[0]?.userId ?? null);
+      }
+
+      return result;
     });
-
-    setPlayers(result);
-    setPhase('showdown');
-    setActionOnSeat(null);
-    setPot(0);
-    setLastAction('showdown');
-
-    // Check if game is over
-    const remaining = result.filter(p => !p.isEliminated);
-    if (remaining.length <= 1) {
-      setGameOver(true);
-      setWinnerId(remaining[0]?.userId ?? null);
-    }
   }
 
   // ── Process action ─────────────────────────────────────────────────────────
@@ -423,23 +453,27 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
         }
       }
 
+      p.hasActedThisRound = true;
       updated[idx] = p;
+
+      // On raise or all-in that raises, other players need to respond
+      if (action === 'raise' || (action === 'all_in' && p.currentBet > currentBet)) {
+        for (let i = 0; i < updated.length; i++) {
+          if (i !== idx && !updated[i].isFolded && !updated[i].isAllIn && !updated[i].isEliminated) {
+            updated[i] = { ...updated[i], hasActedThisRound: false };
+          }
+        }
+      }
+
       setLastAction(action);
 
       // Check if only one player remaining (everyone else folded)
       const notFolded = updated.filter(q => !q.isEliminated && !q.isFolded);
       if (notFolded.length === 1) {
-        // Award pot
         const winnerIdx = updated.findIndex(q => q.userId === notFolded[0].userId);
-        setPot(currentPot => {
-          updated[winnerIdx] = { ...updated[winnerIdx], chips: updated[winnerIdx].chips + currentPot + updated.reduce((s, q) => s + (q === updated[winnerIdx] ? 0 : 0), 0) };
-          return 0;
-        });
-        // Hacky but we need to set pot to 0 and award it
         const totalBets = updated.reduce((s, q) => s + q.totalBet, 0);
         updated[winnerIdx] = { ...updated[winnerIdx], chips: updated[winnerIdx].chips + totalBets };
         updated.forEach((q, i) => { updated[i] = { ...q, totalBet: 0, currentBet: 0 }; });
-        setPlayers(updated);
         setPot(0);
         setPhase('showdown');
         setActionOnSeat(null);
@@ -454,20 +488,20 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
       const nextSeat = getNextActiveSeat(aSeats, p.seat, foldedSet, allinSet);
 
       if (nextSeat === null) {
-        // Everyone all-in/folded
-        setPlayers(updated);
-        setTimeout(() => advancePhase(), 500);
+        // Everyone all-in/folded — use ref to avoid stale closure
+        setTimeout(() => advancePhaseRef.current(), 500);
         return updated;
       }
 
-      // Check if round complete (all non-folded, non-allin have equal bets)
+      // Check if round complete (all active players have acted and bets are equal)
       const canAct = updated.filter(q => !q.isEliminated && !q.isFolded && !q.isAllIn);
       const maxBet = Math.max(...canAct.map(q => q.currentBet), 0);
       const allEqual = canAct.every(q => q.currentBet >= maxBet);
+      const allActed = canAct.every(q => q.hasActedThisRound);
 
-      if (allEqual && action !== 'raise' && action !== 'all_in') {
-        setPlayers(updated);
-        setTimeout(() => advancePhase(), 300);
+      if (allEqual && allActed) {
+        // Use ref to avoid stale closure — ensures advancePhase sees latest player state
+        setTimeout(() => advancePhaseRef.current(), 300);
         return updated;
       }
 
