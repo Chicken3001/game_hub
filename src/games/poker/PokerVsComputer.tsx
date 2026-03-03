@@ -104,6 +104,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
 
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancePhaseRef = useRef<() => void>(() => {});
+  const processingActionRef = useRef(false);
 
   const activePlayers = players.filter(p => !p.isEliminated);
   const activeSeats = activePlayers.map(p => p.seat).sort((a, b) => a - b);
@@ -356,9 +357,12 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
           const bestScore = Math.max(...eligible.map(p => p.score ?? 0));
           const winners = eligible.filter(p => p.score === bestScore);
           const share = Math.floor(potAmount / winners.length);
-          for (const w of winners) {
-            const idx = evaluated.findIndex(p => p.userId === w.userId);
-            if (idx !== -1) evaluated[idx] = { ...evaluated[idx], chips: evaluated[idx].chips + share };
+          const remainder = potAmount - share * winners.length;
+          for (let wi = 0; wi < winners.length; wi++) {
+            const idx = evaluated.findIndex(p => p.userId === winners[wi].userId);
+            // First winner gets remainder chip(s) — standard poker odd-chip rule
+            const bonus = wi === 0 ? remainder : 0;
+            if (idx !== -1) evaluated[idx] = { ...evaluated[idx], chips: evaluated[idx].chips + share + bonus };
           }
         }
 
@@ -510,6 +514,13 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     });
   }, [currentBet, advancePhase]);
 
+  // Clear double-click guard when action moves away from human
+  useEffect(() => {
+    if (actionOnSeat !== 0) {
+      processingActionRef.current = false;
+    }
+  }, [actionOnSeat]);
+
   // ── AI turn processing ─────────────────────────────────────────────────────
   useEffect(() => {
     if (phase === 'waiting' || phase === 'showdown') return;
@@ -534,7 +545,8 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
 
   // ── Human action handler ───────────────────────────────────────────────────
   function handleHumanAction(action: PlayerAction, amount?: number) {
-    if (!isHumanTurn) return;
+    if (!isHumanTurn || processingActionRef.current) return;
+    processingActionRef.current = true;
     processAction('human', action, amount);
   }
 
