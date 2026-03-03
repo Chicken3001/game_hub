@@ -74,4 +74,12 @@ export const GAMES: GameEntry[] = [
     icon: "🔴",
     multiplayer: true,
   },
+  {
+    id: "poker",
+    name: "Texas Hold 'em",
+    description: "No-limit poker tournament — last player standing wins!",
+    path: "/games/poker",
+    icon: "🃏",
+    multiplayer: true,
+  },
 ];

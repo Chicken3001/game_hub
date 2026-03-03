@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 
 interface Props {
-  game: 'tic-tac-toe' | 'connect4' | 'checkers';
+  game: 'tic-tac-toe' | 'connect4' | 'checkers' | 'poker';
 }
 
 export function RulesButton({ game }: Props) {
@@ -63,6 +63,23 @@ export function RulesButton({ game }: Props) {
               <li>If the same board position occurs <strong>3 times</strong> with the same player to move, the game is a <strong>draw</strong>.</li>
             </ol>
             <p className="text-xs text-slate-400">🔴 Red always goes first.</p>
+          </div>
+        </Modal>
+      )}
+
+      {game === 'poker' && (
+        <Modal isOpen={open} onClose={() => setOpen(false)} title="🃏 Texas Hold &apos;em Rules">
+          <div className="flex flex-col gap-3 text-sm text-slate-700">
+            <p>No-Limit Texas Hold &apos;em — 2 to 9 players, tournament style.</p>
+            <ol className="flex flex-col gap-2 list-decimal list-inside">
+              <li>Each player is dealt <strong>2 private cards</strong> (hole cards).</li>
+              <li>5 community cards are revealed in stages: <strong>Flop</strong> (3), <strong>Turn</strong> (1), <strong>River</strong> (1).</li>
+              <li>Make the best <strong>5-card hand</strong> from your 2 hole cards + 5 community cards.</li>
+              <li>Bet, raise, call, or fold each round. You can go <strong>all-in</strong> at any time.</li>
+              <li>Blinds increase over time — short-stacked players must act or get blinded out.</li>
+              <li>Players eliminated when they run out of chips. <strong>Last player standing wins!</strong></li>
+            </ol>
+            <p className="text-xs text-slate-400">Hand rankings: Royal Flush &gt; Straight Flush &gt; Four of a Kind &gt; Full House &gt; Flush &gt; Straight &gt; Three of a Kind &gt; Two Pair &gt; Pair &gt; High Card</p>
           </div>
         </Modal>
       )}

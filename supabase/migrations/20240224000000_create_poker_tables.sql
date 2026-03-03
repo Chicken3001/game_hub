@@ -1,0 +1,5 @@
+-- Poker tables migration (applied via Supabase MCP)
+-- 4 tables: poker_games, poker_players, poker_hole_cards, poker_decks
+-- 5 SECURITY DEFINER functions: poker_deal_hand, poker_player_action,
+--   poker_advance_phase, poker_showdown, poker_evaluate_hand
+-- See apply_migration call for full SQL
