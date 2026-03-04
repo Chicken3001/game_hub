@@ -110,10 +110,13 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
 
   const [blindTimeLeft, setBlindTimeLeft] = useState<number | null>(null);
 
+  const [lastRaiseSize, setLastRaiseSize] = useState(0);
+
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancePhaseRef = useRef<() => void>(() => {});
   const processingActionRef = useRef(false);
   const currentBetRef = useRef(0);
+  const lastRaiseSizeRef = useRef(0);
 
   const activePlayers = players.filter(p => !p.isEliminated);
   const activeSeats = activePlayers.map(p => p.seat).sort((a, b) => a - b);
@@ -122,7 +125,7 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
   const isHumanTurn = actionOnSeat === 0 && !players[0].isFolded && !players[0].isAllIn && phase !== 'waiting' && phase !== 'showdown';
 
   const humanValidActions = isHumanTurn
-    ? getValidActions(players[0].chips, players[0].currentBet, currentBet, blinds.big)
+    ? getValidActions(players[0].chips, players[0].currentBet, currentBet, blinds.big, lastRaiseSize)
     : [];
 
   // ── Deal a new hand ────────────────────────────────────────────────────────
@@ -223,6 +226,8 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     setCommunityCards([]);
     setPot(totalPot);
     setCurrentBet(bl.big);
+    setLastRaiseSize(bl.big);
+    lastRaiseSizeRef.current = bl.big;
     setPhase('preflop');
     setActionOnSeat(actualFirst);
     setHandNumber(h => h + 1);
@@ -290,6 +295,8 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     });
     setCurrentBet(0);
     currentBetRef.current = 0;
+    setLastRaiseSize(blinds.big);
+    lastRaiseSizeRef.current = blinds.big;
     setPlayerActions({});
     setLastAction(null);
 
@@ -299,6 +306,7 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
   // Keep refs in sync so setTimeout always uses latest values
   advancePhaseRef.current = advancePhase;
   currentBetRef.current = currentBet;
+  lastRaiseSizeRef.current = lastRaiseSize;
 
   const advancePhaseAfterAllIn = useCallback((currentPhase: PokerPhase, community: string[], dIdx: number) => {
     const phaseOrder: PokerPhase[] = ['preflop', 'flop', 'turn', 'river', 'showdown'];
@@ -476,6 +484,7 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
         case 'raise': {
           const clampedAmount = Math.max(betToMatch, Math.min(amount ?? betToMatch, p.currentBet + p.chips));
           const raiseCost = clampedAmount - p.currentBet;
+          const raiseIncrement = clampedAmount - betToMatch;
           p.chips -= raiseCost;
           p.currentBet = clampedAmount;
           p.totalBet += raiseCost;
@@ -483,6 +492,8 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
           setPot(pot => pot + raiseCost);
           setCurrentBet(clampedAmount);
           currentBetRef.current = clampedAmount;
+          setLastRaiseSize(raiseIncrement);
+          lastRaiseSizeRef.current = raiseIncrement;
           actionText = betToMatch === 0 ? `Bet ${clampedAmount}` : `Raise ${clampedAmount}`;
           break;
         }
@@ -495,6 +506,12 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
           p.isAllIn = true;
           setPot(pot => pot + allInAmount);
           if (newBet > betToMatch) {
+            const raiseIncrement = newBet - betToMatch;
+            // Only update min raise if this is a full raise (standard rule)
+            if (raiseIncrement >= lastRaiseSizeRef.current) {
+              setLastRaiseSize(raiseIncrement);
+              lastRaiseSizeRef.current = raiseIncrement;
+            }
             setCurrentBet(newBet);
             currentBetRef.current = newBet;
           }
@@ -595,7 +612,7 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
 
     if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
     aiTimerRef.current = setTimeout(() => {
-      const actions = getValidActions(aiPlayer.chips, aiPlayer.currentBet, currentBet, blinds.big);
+      const actions = getValidActions(aiPlayer.chips, aiPlayer.currentBet, currentBet, blinds.big, lastRaiseSizeRef.current);
       const callAmount = currentBet - aiPlayer.currentBet;
       const decision = getAiDecision(
         aiPlayer.holeCards, communityCards, actions, pot, callAmount, aiPlayer.chips, phase

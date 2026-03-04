@@ -172,6 +172,7 @@ export function getValidActions(
   playerCurrentBet: number,
   gameCurBet: number,
   bigBlind: number,
+  lastRaiseSize?: number,
 ): ValidAction[] {
   const actions: ValidAction[] = [];
   const callAmount = gameCurBet - playerCurrentBet;
@@ -191,8 +192,9 @@ export function getValidActions(
     actions.push({ action: 'call' });
   }
 
-  // Raise (min raise is current_bet + big_blind)
-  const minRaise = gameCurBet + bigBlind;
+  // Raise — min raise increment is the larger of the big blind or the last raise size
+  const minRaiseIncrement = Math.max(bigBlind, lastRaiseSize ?? bigBlind);
+  const minRaise = gameCurBet + minRaiseIncrement;
   if (playerChips + playerCurrentBet > gameCurBet) {
     if (playerChips + playerCurrentBet >= minRaise) {
       actions.push({

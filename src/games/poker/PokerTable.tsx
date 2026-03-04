@@ -300,10 +300,14 @@ function PlayerSeat({
 
       {/* Status text below seat chip — hand description or action */}
       {player.hand_description && isShowdown && (showRevealed || showPrivateAtShowdown) && (
-        <span className="text-[9px] font-bold text-green-300 mt-0.5 whitespace-nowrap">{player.hand_description}</span>
+        <div className="mt-0.5 rounded-md bg-black/60 border border-green-400/50 px-1.5 py-0.5">
+          <span className="text-[10px] font-black text-green-200 whitespace-nowrap">{player.hand_description}</span>
+        </div>
       )}
       {isMe && myHandDescription && !isShowdown && !player.is_folded && (
-        <span className="text-[9px] font-bold text-emerald-300 mt-0.5 whitespace-nowrap">{myHandDescription}</span>
+        <div className="mt-0.5 rounded-md bg-black/60 border border-emerald-400/50 px-1.5 py-0.5">
+          <span className="text-[10px] font-black text-emerald-200 whitespace-nowrap">{myHandDescription}</span>
+        </div>
       )}
       {actionText && !isShowdown && (
         <span className="text-[9px] font-bold text-sky-300 mt-0.5 whitespace-nowrap">{actionText}</span>
