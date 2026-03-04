@@ -533,12 +533,10 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     });
   }, [advancePhase]);
 
-  // Clear double-click guard when action moves away from human
+  // Clear double-click guard when turn or phase changes
   useEffect(() => {
-    if (actionOnSeat !== 0) {
-      processingActionRef.current = false;
-    }
-  }, [actionOnSeat]);
+    processingActionRef.current = false;
+  }, [actionOnSeat, phase]);
 
   // ── AI turn processing ─────────────────────────────────────────────────────
   useEffect(() => {
