@@ -43,10 +43,11 @@ function parseCard(card: string): { rank: number; suit: number } {
 
 // ── Hand evaluation (mirrors PL/pgSQL) ───────────────────────────────────────
 
-export function evaluateHand(cards: string[]): { score: number; name: string } {
+export function evaluateHand(cards: string[]): { score: number; name: string; bestCards: string[] } {
   const parsed = cards.map(parseCard);
   const n = parsed.length;
   let bestScore = 0;
+  let bestIndices: number[] = [];
 
   // Evaluate all C(n,5) combinations
   for (let c1 = 0; c1 < n; c1++) {
@@ -109,14 +110,17 @@ export function evaluateHand(cards: string[]): { score: number; name: string } {
               score = 1e10 + ranks[0] * 1e8 + ranks[1] * 1e6 + ranks[2] * 1e4 + ranks[3] * 1e2 + ranks[4];
             }
 
-            if (score > bestScore) bestScore = score;
+            if (score > bestScore) {
+              bestScore = score;
+              bestIndices = [c1, c2, c3, c4, c5];
+            }
           }
         }
       }
     }
   }
 
-  return { score: bestScore, name: getHandName(bestScore) };
+  return { score: bestScore, name: getHandName(bestScore), bestCards: bestIndices.map(i => cards[i]) };
 }
 
 function getHandName(score: number): string {

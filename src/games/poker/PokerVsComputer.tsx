@@ -34,6 +34,7 @@ interface LocalPlayer {
   isAi: boolean;
   name: string;
   hasActedThisRound: boolean;
+  bestCards: string[];
 }
 
 const AI_NAMES = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Hank'];
@@ -73,7 +74,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
       currentBet: 0, totalBet: 0, isFolded: false, isAllIn: false,
       isEliminated: false, isDealer: false, isSmallBlind: false, isBigBlind: false,
       handDescription: null, showCards: false, holeCards: [], isAi: false, name: 'You',
-      hasActedThisRound: false,
+      hasActedThisRound: false, bestCards: [],
     });
     for (let i = 0; i < numOpponents; i++) {
       all.push({
@@ -81,7 +82,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
         currentBet: 0, totalBet: 0, isFolded: false, isAllIn: false,
         isEliminated: false, isDealer: false, isSmallBlind: false, isBigBlind: false,
         handDescription: null, showCards: false, holeCards: [], isAi: true, name: AI_NAMES[i] ?? `Bot ${i + 1}`,
-        hasActedThisRound: false,
+        hasActedThisRound: false, bestCards: [],
       });
     }
     return all;
@@ -102,6 +103,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
   const [gameStartedAt] = useState(() => new Date().toISOString());
   const [gameOver, setGameOver] = useState(false);
   const [winnerId, setWinnerId] = useState<string | null>(null);
+  const [showMyFoldedCards, setShowMyFoldedCards] = useState(false);
 
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancePhaseRef = useRef<() => void>(() => {});
@@ -162,7 +164,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     let idx = 0;
 
     const updated = players.map(p => {
-      if (p.isEliminated) return { ...p, holeCards: [], currentBet: 0, totalBet: 0, isFolded: false, isAllIn: false, isDealer: false, isSmallBlind: false, isBigBlind: false, handDescription: null, showCards: false, hasActedThisRound: false };
+      if (p.isEliminated) return { ...p, holeCards: [], currentBet: 0, totalBet: 0, isFolded: false, isAllIn: false, isDealer: false, isSmallBlind: false, isBigBlind: false, handDescription: null, showCards: false, hasActedThisRound: false, bestCards: [] };
       const cards = [newDeck[idx], newDeck[idx + 1]];
       idx += 2;
 
@@ -190,6 +192,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
         handDescription: null,
         showCards: false,
         hasActedThisRound: false,
+        bestCards: [],
       };
     });
 
@@ -219,6 +222,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     setHandNumber(h => h + 1);
     setLastAction(null);
     setPlayerActions({});
+    setShowMyFoldedCards(false);
 
     // If no one can act (all-in from blinds), auto-advance through all streets
     if (actualFirst === null) {
@@ -334,10 +338,10 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
 
       // Evaluate hands
       const evaluated = active.map(p => {
-        if (p.isFolded) return { ...p, score: 0, handDescription: null, showCards: false };
+        if (p.isFolded) return { ...p, score: 0, handDescription: null, showCards: false, bestCards: [] };
         const allCards = [...p.holeCards, ...community];
-        const { score, name } = evaluateHand(allCards);
-        return { ...p, score, handDescription: name, showCards: true };
+        const { score, name, bestCards } = evaluateHand(allCards);
+        return { ...p, score, handDescription: name, showCards: true, bestCards };
       });
 
       // Side pot awarding
@@ -395,6 +399,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
           isEliminated: ev.isEliminated,
           handDescription: ev.handDescription,
           showCards: ev.showCards,
+          bestCards: ev.bestCards ?? [],
           totalBet: 0,
           currentBet: 0,
         };
@@ -554,7 +559,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
         aiPlayer.holeCards, communityCards, actions, pot, callAmount, aiPlayer.chips, phase
       );
       processAction(aiPlayer.userId, decision.action, decision.amount);
-    }, 600 + Math.random() * 400);
+    }, 1500 + Math.random() * 1500);
 
     return () => { if (aiTimerRef.current) clearTimeout(aiTimerRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -578,10 +583,14 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
   const revealedCards: Record<string, string[]> = {};
   if (phase === 'showdown') {
     players.forEach(p => {
-      if (p.showCards && p.holeCards.length > 0) {
-        revealedCards[p.userId] = p.holeCards;
+      if (p.showCards && p.bestCards.length > 0) {
+        revealedCards[p.userId] = p.bestCards;
       }
     });
+    // Show folded human's hole cards if they chose to reveal
+    if (showMyFoldedCards && players[0].isFolded && players[0].holeCards.length > 0) {
+      revealedCards['human'] = players[0].holeCards;
+    }
   }
 
   const usernameMap: Record<string, string> = {};
@@ -621,12 +630,22 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
               {lastAction === 'win_by_fold' ? 'Everyone folded!' : 'Showdown!'}
             </p>
           </div>
-          <button
-            onClick={handleNextHand}
-            className="w-full rounded-2xl border-2 border-emerald-400 bg-emerald-600 px-6 py-3 font-black text-white shadow transition hover:bg-emerald-700 active:scale-95"
-          >
-            🃏 Deal Next Hand
-          </button>
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={handleNextHand}
+              className="flex-1 rounded-2xl border-2 border-emerald-400 bg-emerald-600 px-6 py-3 font-black text-white shadow transition hover:bg-emerald-700 active:scale-95"
+            >
+              🃏 Deal Next Hand
+            </button>
+            {players[0].isFolded && !showMyFoldedCards && (
+              <button
+                onClick={() => setShowMyFoldedCards(true)}
+                className="rounded-2xl border-2 border-slate-400 bg-slate-600 px-4 py-3 font-black text-white shadow transition hover:bg-slate-700 active:scale-95"
+              >
+                Show Cards
+              </button>
+            )}
+          </div>
         </div>
       )}
 

@@ -204,7 +204,7 @@ function PlayerSeat({
   position: [number, number];
   actionText?: string;
 }) {
-  const showHoleCards = isMe && myHoleCards.length > 0;
+  const showHoleCards = isMe && myHoleCards.length > 0 && !isShowdown;
   const showRevealed = isShowdown && revealedCards && revealedCards.length > 0;
   const isFoldedOrOut = player.is_folded || player.is_eliminated;
 
