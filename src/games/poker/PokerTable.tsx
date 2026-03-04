@@ -18,8 +18,8 @@ function formatTimeLeft(ms: number): string {
 function CardDisplay({ card, faceDown, small, highlight }: { card?: string; faceDown?: boolean; small?: boolean; highlight?: boolean }) {
   if (faceDown || !card) {
     return (
-      <div className={`${small ? 'w-7 h-10' : 'w-10 h-14'} rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 border-2 border-blue-400 shadow-md flex items-center justify-center`}>
-        <span className={`${small ? 'text-[10px]' : 'text-sm'} text-blue-200 font-black`}>?</span>
+      <div className={`${small ? 'w-9 h-[52px]' : 'w-10 h-14'} rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 border-2 border-blue-400 shadow-md flex items-center justify-center`}>
+        <span className={`${small ? 'text-xs' : 'text-sm'} text-blue-200 font-black`}>?</span>
       </div>
     );
   }
@@ -29,9 +29,9 @@ function CardDisplay({ card, faceDown, small, highlight }: { card?: string; face
   const color = SUIT_COLORS[suit] ?? 'text-slate-800';
 
   return (
-    <div className={`${small ? 'w-7 h-10' : 'w-10 h-14'} rounded-lg bg-white shadow-md flex flex-col items-center justify-center ${color} ${highlight ? 'border-2 border-amber-400 ring-1 ring-amber-300' : 'border-2 border-slate-200'}`}>
-      <span className={`${small ? 'text-[10px]' : 'text-sm'} font-black leading-none`}>{RANK_DISPLAY[rank]}</span>
-      <span className={`${small ? 'text-[10px]' : 'text-sm'} leading-none`}>{SUIT_SYMBOLS[suit]}</span>
+    <div className={`${small ? 'w-9 h-[52px]' : 'w-10 h-14'} rounded-lg bg-white shadow-md flex flex-col items-center justify-center ${color} ${highlight ? 'border-2 border-amber-400 ring-1 ring-amber-300' : 'border-2 border-slate-200'}`}>
+      <span className={`${small ? 'text-sm' : 'text-base'} font-black leading-none`}>{RANK_DISPLAY[rank]}</span>
+      <span className={`${small ? 'text-lg' : 'text-xl'} leading-none`}>{SUIT_SYMBOLS[suit]}</span>
     </div>
   );
 }
@@ -51,19 +51,43 @@ function ActionButtons({
   callAmount: number;
   currentBet: number;
 }) {
-  const [raiseAmount, setRaiseAmount] = useState<number>(0);
   const raiseAction = validActions.find(a => a.action === 'raise');
+  const minAmt = raiseAction?.minAmount ?? 0;
+  const maxAmt = raiseAction?.maxAmount ?? 0;
+  const [raiseAmount, setRaiseAmount] = useState<number>(minAmt);
+  const [inputText, setInputText] = useState<string>(String(minAmt));
 
-  // Reset slider when raise range changes (new hand/round)
+  // Reset when raise range changes (new hand/round)
   useEffect(() => {
-    setRaiseAmount(0);
-  }, [raiseAction?.minAmount, raiseAction?.maxAmount]);
+    setRaiseAmount(minAmt);
+    setInputText(String(minAmt));
+  }, [minAmt, maxAmt]);
+
+  const updateRaise = (value: number) => {
+    const clamped = Math.max(minAmt, Math.min(maxAmt, value));
+    setRaiseAmount(clamped);
+    setInputText(String(clamped));
+  };
+
+  const handleInputChange = (text: string) => {
+    setInputText(text);
+    const num = parseInt(text, 10);
+    if (!isNaN(num)) {
+      setRaiseAmount(Math.max(minAmt, Math.min(maxAmt, num)));
+    }
+  };
+
+  const handleInputBlur = () => {
+    // Snap to valid range on blur
+    updateRaise(raiseAmount);
+  };
 
   const handleRaise = () => {
     if (!raiseAction) return;
-    const amount = raiseAmount || raiseAction.minAmount || 0;
-    onAction('raise', amount);
+    onAction('raise', raiseAmount);
   };
+
+  const isValidRaise = raiseAmount >= minAmt && raiseAmount <= maxAmt;
 
   const actionStyles: Record<string, string> = {
     fold: 'border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200',
@@ -97,25 +121,39 @@ function ActionButtons({
         ))}
       </div>
       {raiseAction && (
-        <div className="flex items-center gap-2 justify-center">
-          <input
-            type="range"
-            min={raiseAction.minAmount ?? 0}
-            max={raiseAction.maxAmount ?? 0}
-            value={raiseAmount || raiseAction.minAmount || 0}
-            onChange={e => setRaiseAmount(Number(e.target.value))}
-            className="w-24 accent-amber-500"
-          />
-          <span className="text-sm font-black text-amber-700 w-12 text-center">
-            {raiseAmount || raiseAction.minAmount || 0}
-          </span>
-          <button
-            onClick={handleRaise}
-            disabled={disabled}
-            className={`rounded-xl border-2 px-4 py-2 text-sm font-black shadow transition active:scale-95 disabled:opacity-50 ${actionStyles.raise}`}
-          >
-            {isBet ? 'Bet' : 'Raise'}
-          </button>
+        <div className="flex flex-col gap-1.5 items-center">
+          <div className="flex items-center gap-2 w-full justify-center">
+            <input
+              type="range"
+              min={minAmt}
+              max={maxAmt}
+              value={raiseAmount}
+              onChange={e => updateRaise(Number(e.target.value))}
+              className="flex-1 max-w-[140px] accent-amber-500"
+            />
+            <input
+              type="text"
+              inputMode="numeric"
+              value={inputText}
+              onChange={e => handleInputChange(e.target.value)}
+              onBlur={handleInputBlur}
+              onKeyDown={e => { if (e.key === 'Enter' && isValidRaise) handleRaise(); }}
+              className={`w-16 rounded-lg border-2 bg-white px-2 py-1 text-center text-sm font-black ${
+                isValidRaise ? 'border-amber-400 text-amber-700' : 'border-red-400 text-red-600'
+              }`}
+            />
+            <button
+              onClick={handleRaise}
+              disabled={disabled || !isValidRaise}
+              className={`rounded-xl border-2 px-4 py-2 text-sm font-black shadow transition active:scale-95 disabled:opacity-50 ${actionStyles.raise}`}
+            >
+              {isBet ? 'Bet' : 'Raise'}
+            </button>
+          </div>
+          <div className="flex gap-2 text-[10px] font-bold text-slate-400">
+            <span>Min: {minAmt}</span>
+            <span>Max: {maxAmt}</span>
+          </div>
         </div>
       )}
     </div>
@@ -266,57 +304,57 @@ function PlayerSeat({
         </div>
       )}
 
-      {/* Seat chip — name, chips, badge */}
-      <div
-        className={`
-          flex flex-col items-center rounded-xl border-2 px-3 py-1.5 min-w-[68px] transition-all
-          ${isFoldedOrOut ? 'border-slate-400/40 bg-slate-700/60 opacity-50' : ''}
-          ${isAction ? 'border-amber-400 bg-amber-900/80 shadow-[0_0_12px_rgba(251,191,36,0.5)]' : ''}
-          ${!isAction && !isFoldedOrOut ? 'border-emerald-300/40 bg-slate-800/80' : ''}
-          ${isMe && !isFoldedOrOut ? 'border-blue-400/70 bg-blue-900/70' : ''}
-        `}
-      >
-        <div className="flex items-center gap-1">
-          <span className={`text-[11px] font-black truncate max-w-[56px] ${isMe ? 'text-blue-200' : 'text-slate-200'}`}>
-            {displayName}
-          </span>
-          {badge && (
-            <span className={`text-[8px] font-black rounded-full px-1 leading-tight ${
-              badge === 'D' ? 'bg-white text-slate-900' :
-              badge === 'SB' ? 'bg-amber-400 text-amber-900' :
-              'bg-amber-500 text-white'
-            }`}>
-              {badge}
+      {/* Seat chip — name, chips, badge + bet chip positioned relative */}
+      <div className="relative">
+        <div
+          className={`
+            flex flex-col items-center rounded-xl border-2 px-3 py-1.5 min-w-[68px] transition-all
+            ${isFoldedOrOut ? 'border-slate-400/40 bg-slate-700/60 opacity-50' : ''}
+            ${isAction ? 'border-amber-400 bg-amber-900/80 shadow-[0_0_12px_rgba(251,191,36,0.5)]' : ''}
+            ${!isAction && !isFoldedOrOut ? 'border-emerald-300/40 bg-slate-800/80' : ''}
+            ${isMe && !isFoldedOrOut ? 'border-blue-400/70 bg-blue-900/70' : ''}
+          `}
+        >
+          <div className="flex items-center gap-1">
+            <span className={`text-[11px] font-black truncate max-w-[56px] ${isMe ? 'text-blue-200' : 'text-slate-200'}`}>
+              {displayName}
             </span>
+            {badge && (
+              <span className={`text-[8px] font-black rounded-full px-1 leading-tight ${
+                badge === 'D' ? 'bg-white text-slate-900' :
+                badge === 'SB' ? 'bg-amber-400 text-amber-900' :
+                'bg-amber-500 text-white'
+              }`}>
+                {badge}
+              </span>
+            )}
+          </div>
+          <span className={`text-[11px] font-bold leading-tight ${isFoldedOrOut ? 'text-slate-400' : 'text-yellow-300'}`}>
+            {player.is_eliminated ? 'Out' : player.is_folded ? 'Folded' : `${player.chips}`}
+          </span>
+          {player.is_all_in && !player.is_folded && (
+            <span className="text-[8px] font-black text-red-400 leading-tight">ALL IN</span>
           )}
         </div>
-        <span className={`text-[11px] font-bold leading-tight ${isFoldedOrOut ? 'text-slate-400' : 'text-yellow-300'}`}>
-          {player.is_eliminated ? 'Out' : player.is_folded ? 'Folded' : `${player.chips}`}
-        </span>
-        {player.is_all_in && !player.is_folded && (
-          <span className="text-[8px] font-black text-red-400 leading-tight">ALL IN</span>
+
+        {/* Bet chip — absolutely positioned so it doesn't affect seat height */}
+        {player.current_bet > 0 && (
+          <div className="absolute -right-2 -top-2 rounded-full bg-amber-400 border border-amber-600 px-1.5 py-0 shadow">
+            <span className="text-[10px] font-black text-amber-900">{player.current_bet}</span>
+          </div>
         )}
       </div>
 
-      {/* Status text below seat chip — hand description or action */}
-      {player.hand_description && isShowdown && (showRevealed || showPrivateAtShowdown) && (
-        <div className="mt-0.5 rounded-md bg-black/60 border border-green-400/50 px-1.5 py-0.5">
-          <span className="text-[10px] font-black text-green-200 whitespace-nowrap">{player.hand_description}</span>
+      {/* Hand descriptions for non-human players at showdown */}
+      {!isMe && player.hand_description && isShowdown && (showRevealed || showPrivateAtShowdown) && (
+        <div className="mt-0.5 rounded-full bg-white/90 px-2 py-0.5 shadow" style={{ zIndex: 30 }}>
+          <span className="text-[10px] font-black text-slate-800 whitespace-nowrap">{player.hand_description}</span>
         </div>
       )}
-      {isMe && myHandDescription && !isShowdown && !player.is_folded && (
-        <div className="mt-0.5 rounded-md bg-black/60 border border-emerald-400/50 px-1.5 py-0.5">
-          <span className="text-[10px] font-black text-emerald-200 whitespace-nowrap">{myHandDescription}</span>
-        </div>
-      )}
-      {actionText && !isShowdown && (
-        <span className="text-[9px] font-bold text-sky-300 mt-0.5 whitespace-nowrap">{actionText}</span>
-      )}
-
-      {/* Bet chip */}
-      {player.current_bet > 0 && (
-        <div className="rounded-full bg-amber-400 border border-amber-600 px-1.5 py-0 mt-0.5">
-          <span className="text-[10px] font-black text-amber-900">{player.current_bet}</span>
+      {/* Human action text rendered in main layout to avoid overlap */}
+      {!isMe && actionText && !isShowdown && (
+        <div className="mt-0.5 rounded-full bg-white/90 px-2 py-0.5 shadow">
+          <span className="text-[11px] font-black text-slate-800 whitespace-nowrap">{actionText}</span>
         </div>
       )}
 
@@ -443,8 +481,8 @@ export function PokerTable({
         </div>
       )}
 
-      {/* The Table */}
-      <div className="relative w-full" style={{ paddingBottom: '75%' }}>
+      {/* The Table — extra bottom padding so human seat doesn't overflow into content below */}
+      <div className="relative w-full" style={{ paddingBottom: '90%' }}>
         {/* Felt oval */}
         <div
           className="absolute inset-[4%] rounded-[50%] border-4 border-emerald-800 shadow-[inset_0_2px_20px_rgba(0,0,0,0.4),0_4px_12px_rgba(0,0,0,0.3)]"
@@ -474,7 +512,7 @@ export function PokerTable({
                 <CardDisplay key={i} card={card} small highlight={isShowdown && winnerBestCards?.includes(card)} />
               ))}
               {phase !== 'showdown' && Array.from({ length: 5 - communityCards.length }, (_, i) => (
-                <div key={`e-${i}`} className="w-7 h-10 rounded-lg border border-dashed border-emerald-400/30" />
+                <div key={`e-${i}`} className="w-9 h-[52px] rounded-lg border border-dashed border-emerald-400/30" />
               ))}
             </div>
           )}
@@ -515,6 +553,21 @@ export function PokerTable({
             />
           );
         })}
+      </div>
+
+      {/* Human status — shown outside the table to avoid overlap with seat elements */}
+      <div className="mt-4 flex items-center justify-center gap-3">
+        {myHandDescription && !isShowdown && !myPlayer?.is_folded && (
+          <span className="text-sm font-black text-amber-400">{myHandDescription}</span>
+        )}
+        {isShowdown && myPlayer?.hand_description && (
+          <span className="text-sm font-black text-amber-400">{myPlayer.hand_description}</span>
+        )}
+        {!isShowdown && playerActions?.[myUserId ?? ''] && (
+          <span className="rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-black text-slate-800 shadow">
+            {playerActions[myUserId ?? '']}
+          </span>
+        )}
       </div>
 
       {/* Action buttons */}

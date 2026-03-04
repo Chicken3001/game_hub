@@ -226,6 +226,7 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     setCommunityCards([]);
     setPot(totalPot);
     setCurrentBet(bl.big);
+    currentBetRef.current = bl.big;
     setLastRaiseSize(bl.big);
     lastRaiseSizeRef.current = bl.big;
     setPhase('preflop');
@@ -278,6 +279,9 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     setPhase(nextPhase);
 
     // Reset bets and hasActedThisRound for the new betting round
+    let firstSeatToAct: number | null = null;
+    let allInAdvance = false;
+
     setPlayers(prev => {
       const updated = prev.map(p => ({ ...p, currentBet: 0, hasActedThisRound: false }));
       const activeS = updated.filter(p => !p.isEliminated).map(p => p.seat).sort((a, b) => a - b);
@@ -286,13 +290,20 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
       const first = getFirstPostDealerSeat(activeS, dealerSeat, foldedSet, allinSet);
 
       if (first === null) {
-        setTimeout(() => advancePhaseAfterAllIn(nextPhase, newCommunity, newIdx), 800);
+        allInAdvance = true;
       } else {
-        setActionOnSeat(first);
+        firstSeatToAct = first;
       }
 
       return updated;
     });
+
+    // setState calls OUTSIDE the updater
+    if (allInAdvance) {
+      setTimeout(() => advancePhaseAfterAllIn(nextPhase, newCommunity, newIdx), 800);
+    } else if (firstSeatToAct !== null) {
+      setActionOnSeat(firstSeatToAct);
+    }
     setCurrentBet(0);
     currentBetRef.current = 0;
     setLastRaiseSize(blinds.big);
@@ -303,10 +314,11 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, communityCards, deck, deckIdx, dealerSeat]);
 
-  // Keep refs in sync so setTimeout always uses latest values
+  // Keep advancePhase ref in sync (it's a new callback each render)
+  // Note: currentBetRef and lastRaiseSizeRef are updated directly where they change
+  // — do NOT sync them from state here, as it can overwrite values set in processAction
+  // if React splits setPlayers/setCurrentBet across render cycles.
   advancePhaseRef.current = advancePhase;
-  currentBetRef.current = currentBet;
-  lastRaiseSizeRef.current = lastRaiseSize;
 
   const advancePhaseAfterAllIn = useCallback((currentPhase: PokerPhase, community: string[], dIdx: number) => {
     const phaseOrder: PokerPhase[] = ['preflop', 'flop', 'turn', 'river', 'showdown'];
@@ -346,7 +358,12 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
 
   // Uses setPlayers(prev => ...) to always read the latest player state,
   // avoiding stale closure bugs when called from advancePhaseAfterAllIn.
+  // State setters (setPhase etc.) are called AFTER setPlayers to avoid
+  // React batching issues from calling setState inside a setState updater.
   function runShowdownWith(community: string[]) {
+    let isOver = false;
+    let winner: string | null = null;
+
     setPlayers(prev => {
       const active = prev.filter(p => !p.isEliminated);
 
@@ -436,23 +453,39 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
         };
       });
 
-      setPhase('showdown');
-      setActionOnSeat(null);
-      setLastAction('showdown');
-
-      // Check if game is over
+      // Capture for use after setPlayers
       const remaining = result.filter(p => !p.isEliminated);
       if (remaining.length <= 1) {
-        setGameOver(true);
-        setWinnerId(remaining[0]?.userId ?? null);
+        isOver = true;
+        winner = remaining[0]?.userId ?? null;
       }
 
       return result;
     });
+
+    // Set these OUTSIDE the setPlayers updater so React batches them together
+    // in the same render cycle as the player state update
+    setPhase('showdown');
+    setActionOnSeat(null);
+    setLastAction('showdown');
+    if (isOver) {
+      setGameOver(true);
+      setWinnerId(winner);
+    }
   }
 
   // ── Process action ─────────────────────────────────────────────────────────
   const processAction = useCallback((userId: string, action: PlayerAction, amount?: number) => {
+    // Signals from inside setPlayers updater for setState calls outside
+    let potDelta = 0;
+    let newCurrentBet: number | null = null;
+    let newLastRaiseSize: number | null = null;
+    let winByFold = false;
+    let advanceAfter = false;
+    let advanceDelay = 0;
+    let nextSeatToSet: number | null = null;
+    let actionTextForLog = '';
+
     setPlayers(prev => {
       const updated = [...prev];
       const idx = updated.findIndex(p => p.userId === userId);
@@ -461,15 +494,14 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
 
       const betToMatch = currentBetRef.current;
       const callAmount = betToMatch - p.currentBet;
-      let actionText = '';
 
       switch (action) {
         case 'fold':
           p.isFolded = true;
-          actionText = 'Fold';
+          actionTextForLog = 'Fold';
           break;
         case 'check':
-          actionText = 'Check';
+          actionTextForLog = 'Check';
           break;
         case 'call': {
           const actual = Math.min(callAmount, p.chips);
@@ -477,8 +509,8 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
           p.currentBet += actual;
           p.totalBet += actual;
           p.isAllIn = p.chips === 0;
-          setPot(pot => pot + actual);
-          actionText = `Call ${actual}`;
+          potDelta = actual;
+          actionTextForLog = `Call ${actual}`;
           break;
         }
         case 'raise': {
@@ -489,12 +521,12 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
           p.currentBet = clampedAmount;
           p.totalBet += raiseCost;
           p.isAllIn = p.chips === 0;
-          setPot(pot => pot + raiseCost);
-          setCurrentBet(clampedAmount);
+          potDelta = raiseCost;
+          newCurrentBet = clampedAmount;
           currentBetRef.current = clampedAmount;
-          setLastRaiseSize(raiseIncrement);
+          newLastRaiseSize = raiseIncrement;
           lastRaiseSizeRef.current = raiseIncrement;
-          actionText = betToMatch === 0 ? `Bet ${clampedAmount}` : `Raise ${clampedAmount}`;
+          actionTextForLog = betToMatch === 0 ? `Bet ${clampedAmount}` : `Raise ${clampedAmount}`;
           break;
         }
         case 'all_in': {
@@ -504,18 +536,17 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
           p.currentBet = newBet;
           p.totalBet += allInAmount;
           p.isAllIn = true;
-          setPot(pot => pot + allInAmount);
+          potDelta = allInAmount;
           if (newBet > betToMatch) {
             const raiseIncrement = newBet - betToMatch;
-            // Only update min raise if this is a full raise (standard rule)
             if (raiseIncrement >= lastRaiseSizeRef.current) {
-              setLastRaiseSize(raiseIncrement);
+              newLastRaiseSize = raiseIncrement;
               lastRaiseSizeRef.current = raiseIncrement;
             }
-            setCurrentBet(newBet);
+            newCurrentBet = newBet;
             currentBetRef.current = newBet;
           }
-          actionText = 'All In';
+          actionTextForLog = 'All In';
           break;
         }
       }
@@ -523,17 +554,16 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
       p.hasActedThisRound = true;
       updated[idx] = p;
 
-      // On raise or all-in that raises, other players need to respond
-      if (action === 'raise' || (action === 'all_in' && p.currentBet > betToMatch)) {
+      // On raise or full-raise all-in, other players need to respond
+      const isFullRaise = action === 'raise' ||
+        (action === 'all_in' && p.currentBet > betToMatch && (p.currentBet - betToMatch) >= lastRaiseSizeRef.current);
+      if (isFullRaise) {
         for (let i = 0; i < updated.length; i++) {
           if (i !== idx && !updated[i].isFolded && !updated[i].isAllIn && !updated[i].isEliminated) {
             updated[i] = { ...updated[i], hasActedThisRound: false };
           }
         }
       }
-
-      setLastAction(action);
-      setPlayerActions(pa => ({ ...pa, [userId]: actionText }));
 
       // Check if only one player remaining (everyone else folded)
       const notFolded = updated.filter(q => !q.isEliminated && !q.isFolded);
@@ -542,10 +572,7 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
         const totalBets = updated.reduce((s, q) => s + q.totalBet, 0);
         updated[winnerIdx] = { ...updated[winnerIdx], chips: updated[winnerIdx].chips + totalBets };
         updated.forEach((q, i) => { updated[i] = { ...q, totalBet: 0, currentBet: 0 }; });
-        setPot(0);
-        setPhase('showdown');
-        setActionOnSeat(null);
-        setLastAction('win_by_fold');
+        winByFold = true;
         return updated;
       }
 
@@ -556,26 +583,45 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
       const nextSeat = getNextActiveSeat(aSeats, p.seat, foldedSet, allinSet);
 
       if (nextSeat === null) {
-        // Everyone all-in/folded — use ref to avoid stale closure
-        setTimeout(() => advancePhaseRef.current(), 500);
+        advanceAfter = true;
+        advanceDelay = 500;
         return updated;
       }
 
-      // Check if round complete (all active players have acted and bets are equal)
+      // Check if round complete
       const canAct = updated.filter(q => !q.isEliminated && !q.isFolded && !q.isAllIn);
       const maxBet = Math.max(...canAct.map(q => q.currentBet), 0);
       const allEqual = canAct.every(q => q.currentBet >= maxBet);
       const allActed = canAct.every(q => q.hasActedThisRound);
 
       if (allEqual && allActed) {
-        // Use ref to avoid stale closure — ensures advancePhase sees latest player state
-        setTimeout(() => advancePhaseRef.current(), 300);
+        advanceAfter = true;
+        advanceDelay = 300;
         return updated;
       }
 
-      setActionOnSeat(nextSeat);
+      nextSeatToSet = nextSeat;
       return updated;
     });
+
+    // All setState calls OUTSIDE the updater for proper React batching
+    if (potDelta > 0) setPot(pot => pot + potDelta);
+    if (newCurrentBet !== null) setCurrentBet(newCurrentBet);
+    if (newLastRaiseSize !== null) setLastRaiseSize(newLastRaiseSize);
+    setLastAction(action);
+    setPlayerActions(pa => ({ ...pa, [userId]: actionTextForLog }));
+
+    if (winByFold) {
+      setPot(0);
+      setPhase('showdown');
+      setActionOnSeat(null);
+      setLastAction('win_by_fold');
+    } else if (advanceAfter) {
+      setActionOnSeat(null);  // Hide buttons during phase transition
+      setTimeout(() => advancePhaseRef.current(), advanceDelay);
+    } else if (nextSeatToSet !== null) {
+      setActionOnSeat(nextSeatToSet);
+    }
   }, [advancePhase]);
 
   // Clear double-click guard when turn or phase changes
@@ -612,8 +658,10 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
 
     if (aiTimerRef.current) clearTimeout(aiTimerRef.current);
     aiTimerRef.current = setTimeout(() => {
-      const actions = getValidActions(aiPlayer.chips, aiPlayer.currentBet, currentBet, blinds.big, lastRaiseSizeRef.current);
-      const callAmount = currentBet - aiPlayer.currentBet;
+      // Use ref for currentBet to avoid stale closure values
+      const curBet = currentBetRef.current;
+      const actions = getValidActions(aiPlayer.chips, aiPlayer.currentBet, curBet, blinds.big, lastRaiseSizeRef.current);
+      const callAmount = curBet - aiPlayer.currentBet;
       const decision = getAiDecision(
         aiPlayer.holeCards, communityCards, actions, pot, callAmount, aiPlayer.chips, phase
       );
