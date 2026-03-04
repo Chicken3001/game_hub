@@ -451,7 +451,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
           break;
         }
         case 'raise': {
-          const clampedAmount = Math.max(p.currentBet, Math.min(amount ?? 0, p.currentBet + p.chips));
+          const clampedAmount = Math.max(betToMatch, Math.min(amount ?? betToMatch, p.currentBet + p.chips));
           const raiseCost = clampedAmount - p.currentBet;
           p.chips -= raiseCost;
           p.currentBet = clampedAmount;
