@@ -6,9 +6,16 @@ import {
   type PokerPlayerRow, type PokerPhase, type ValidAction, type PlayerAction,
 } from './types';
 
+function formatTimeLeft(ms: number): string {
+  const totalSeconds = Math.ceil(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
 // ── CardDisplay ──────────────────────────────────────────────────────────────
 
-function CardDisplay({ card, faceDown, small }: { card?: string; faceDown?: boolean; small?: boolean }) {
+function CardDisplay({ card, faceDown, small, highlight }: { card?: string; faceDown?: boolean; small?: boolean; highlight?: boolean }) {
   if (faceDown || !card) {
     return (
       <div className={`${small ? 'w-7 h-10' : 'w-10 h-14'} rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 border-2 border-blue-400 shadow-md flex items-center justify-center`}>
@@ -22,7 +29,7 @@ function CardDisplay({ card, faceDown, small }: { card?: string; faceDown?: bool
   const color = SUIT_COLORS[suit] ?? 'text-slate-800';
 
   return (
-    <div className={`${small ? 'w-7 h-10' : 'w-10 h-14'} rounded-lg bg-white border-2 border-slate-200 shadow-md flex flex-col items-center justify-center ${color}`}>
+    <div className={`${small ? 'w-7 h-10' : 'w-10 h-14'} rounded-lg bg-white shadow-md flex flex-col items-center justify-center ${color} ${highlight ? 'border-2 border-amber-400 ring-1 ring-amber-300' : 'border-2 border-slate-200'}`}>
       <span className={`${small ? 'text-[10px]' : 'text-sm'} font-black leading-none`}>{RANK_DISPLAY[rank]}</span>
       <span className={`${small ? 'text-[10px]' : 'text-sm'} leading-none`}>{SUIT_SYMBOLS[suit]}</span>
     </div>
@@ -36,11 +43,13 @@ function ActionButtons({
   onAction,
   disabled,
   callAmount,
+  currentBet,
 }: {
   validActions: ValidAction[];
   onAction: (action: PlayerAction, amount?: number) => void;
   disabled: boolean;
   callAmount: number;
+  currentBet: number;
 }) {
   const [raiseAmount, setRaiseAmount] = useState<number>(0);
   const raiseAction = validActions.find(a => a.action === 'raise');
@@ -64,11 +73,12 @@ function ActionButtons({
     all_in: 'border-red-400 bg-red-600 text-white hover:bg-red-700',
   };
 
+  const isBet = currentBet === 0;
   const actionLabels: Record<string, string> = {
     fold: 'Fold',
     check: 'Check',
     call: callAmount > 0 ? `Call ${callAmount}` : 'Call',
-    raise: 'Raise',
+    raise: isBet ? 'Bet' : 'Raise',
     all_in: 'All In',
   };
 
@@ -104,7 +114,7 @@ function ActionButtons({
             disabled={disabled}
             className={`rounded-xl border-2 px-4 py-2 text-sm font-black shadow transition active:scale-95 disabled:opacity-50 ${actionStyles.raise}`}
           >
-            Raise
+            {isBet ? 'Bet' : 'Raise'}
           </button>
         </div>
       )}
@@ -192,6 +202,9 @@ function PlayerSeat({
   displayName,
   position,
   actionText,
+  winnerBestCards,
+  isWinner,
+  myHandDescription,
 }: {
   player: PokerPlayerRow;
   isMe: boolean;
@@ -203,9 +216,15 @@ function PlayerSeat({
   displayName: string;
   position: [number, number];
   actionText?: string;
+  winnerBestCards?: string[];
+  isWinner?: boolean;
+  myHandDescription?: string | null;
 }) {
   const showHoleCards = isMe && myHoleCards.length > 0 && !isShowdown;
+  // At showdown, show revealed cards for players who must show or chose to show
   const showRevealed = isShowdown && revealedCards && revealedCards.length > 0;
+  // Human always sees their own hole cards at showdown (private — only they can see)
+  const showPrivateAtShowdown = isMe && isShowdown && myHoleCards.length > 0 && !showRevealed;
   const isFoldedOrOut = player.is_folded || player.is_eliminated;
 
   // Position badge (D / SB / BB)
@@ -230,12 +249,15 @@ function PlayerSeat({
       {isBottom && (
         <div className="flex gap-0.5 mb-0.5">
           {showHoleCards && myHoleCards.map((card, i) => (
-            <CardDisplay key={i} card={card} small />
+            <CardDisplay key={i} card={card} small highlight={isWinner && winnerBestCards?.includes(card)} />
           ))}
           {showRevealed && revealedCards!.map((card, i) => (
+            <CardDisplay key={i} card={card} small highlight={isWinner && winnerBestCards?.includes(card)} />
+          ))}
+          {showPrivateAtShowdown && myHoleCards.map((card, i) => (
             <CardDisplay key={i} card={card} small />
           ))}
-          {!showHoleCards && !showRevealed && !isShowdown && !isFoldedOrOut && !isWaiting && (
+          {!showHoleCards && !showRevealed && !showPrivateAtShowdown && !isShowdown && !isFoldedOrOut && !isWaiting && (
             <>
               <CardDisplay faceDown small />
               <CardDisplay faceDown small />
@@ -247,7 +269,7 @@ function PlayerSeat({
       {/* Seat chip — name, chips, badge */}
       <div
         className={`
-          flex flex-col items-center rounded-xl border-2 px-2 py-1 min-w-[60px] max-w-[76px] transition-all
+          flex flex-col items-center rounded-xl border-2 px-3 py-1.5 min-w-[68px] transition-all
           ${isFoldedOrOut ? 'border-slate-400/40 bg-slate-700/60 opacity-50' : ''}
           ${isAction ? 'border-amber-400 bg-amber-900/80 shadow-[0_0_12px_rgba(251,191,36,0.5)]' : ''}
           ${!isAction && !isFoldedOrOut ? 'border-emerald-300/40 bg-slate-800/80' : ''}
@@ -255,11 +277,11 @@ function PlayerSeat({
         `}
       >
         <div className="flex items-center gap-1">
-          <span className={`text-[11px] font-black truncate max-w-[52px] ${isMe ? 'text-blue-200' : 'text-slate-200'}`}>
+          <span className={`text-[11px] font-black truncate max-w-[56px] ${isMe ? 'text-blue-200' : 'text-slate-200'}`}>
             {displayName}
           </span>
           {badge && (
-            <span className={`text-[9px] font-black rounded-full px-1 ${
+            <span className={`text-[8px] font-black rounded-full px-1 leading-tight ${
               badge === 'D' ? 'bg-white text-slate-900' :
               badge === 'SB' ? 'bg-amber-400 text-amber-900' :
               'bg-amber-500 text-white'
@@ -268,19 +290,24 @@ function PlayerSeat({
             </span>
           )}
         </div>
-        <span className={`text-[11px] font-bold ${isFoldedOrOut ? 'text-slate-400' : 'text-yellow-300'}`}>
+        <span className={`text-[11px] font-bold leading-tight ${isFoldedOrOut ? 'text-slate-400' : 'text-yellow-300'}`}>
           {player.is_eliminated ? 'Out' : player.is_folded ? 'Folded' : `${player.chips}`}
         </span>
         {player.is_all_in && !player.is_folded && (
-          <span className="text-[9px] font-black text-red-400">ALL IN</span>
-        )}
-        {player.hand_description && isShowdown && !player.is_folded && (
-          <span className="text-[9px] font-bold text-green-300 truncate max-w-[72px]">{player.hand_description}</span>
-        )}
-        {actionText && !isShowdown && (
-          <span className="text-[9px] font-bold text-sky-300">{actionText}</span>
+          <span className="text-[8px] font-black text-red-400 leading-tight">ALL IN</span>
         )}
       </div>
+
+      {/* Status text below seat chip — hand description or action */}
+      {player.hand_description && isShowdown && (showRevealed || showPrivateAtShowdown) && (
+        <span className="text-[9px] font-bold text-green-300 mt-0.5 whitespace-nowrap">{player.hand_description}</span>
+      )}
+      {isMe && myHandDescription && !isShowdown && !player.is_folded && (
+        <span className="text-[9px] font-bold text-emerald-300 mt-0.5 whitespace-nowrap">{myHandDescription}</span>
+      )}
+      {actionText && !isShowdown && (
+        <span className="text-[9px] font-bold text-sky-300 mt-0.5 whitespace-nowrap">{actionText}</span>
+      )}
 
       {/* Bet chip */}
       {player.current_bet > 0 && (
@@ -293,12 +320,15 @@ function PlayerSeat({
       {!isBottom && (
         <div className="flex gap-0.5 mt-0.5">
           {showHoleCards && myHoleCards.map((card, i) => (
-            <CardDisplay key={i} card={card} small />
+            <CardDisplay key={i} card={card} small highlight={isWinner && winnerBestCards?.includes(card)} />
           ))}
           {showRevealed && revealedCards!.map((card, i) => (
+            <CardDisplay key={i} card={card} small highlight={isWinner && winnerBestCards?.includes(card)} />
+          ))}
+          {showPrivateAtShowdown && myHoleCards.map((card, i) => (
             <CardDisplay key={i} card={card} small />
           ))}
-          {!showHoleCards && !showRevealed && !isShowdown && !isFoldedOrOut && !isWaiting && (
+          {!showHoleCards && !showRevealed && !showPrivateAtShowdown && !isShowdown && !isFoldedOrOut && !isWaiting && (
             <>
               <CardDisplay faceDown small />
               <CardDisplay faceDown small />
@@ -332,6 +362,12 @@ export interface PokerTableProps {
   lastAction: string | null;
   usernames?: Record<string, string>;
   playerActions?: Record<string, string>;
+  winnerBestCards?: string[];
+  winnerUserId?: string | null;
+  myHandDescription?: string | null;
+  nextBlindSmall?: number | null;
+  nextBlindBig?: number | null;
+  blindTimeLeft?: number | null;
 }
 
 export function PokerTable({
@@ -354,6 +390,12 @@ export function PokerTable({
   lastAction,
   usernames,
   playerActions,
+  winnerBestCards,
+  winnerUserId,
+  myHandDescription,
+  nextBlindSmall,
+  nextBlindBig,
+  blindTimeLeft,
 }: PokerTableProps) {
   const isShowdown = phase === 'showdown';
   const isWaiting = phase === 'waiting';
@@ -380,8 +422,15 @@ export function PokerTable({
             <span className="text-xs font-black text-slate-400">Hand #{handNumber}</span>
             <span className="rounded-full bg-slate-700 px-2 py-0.5 text-[10px] font-black text-slate-300 capitalize">{phase}</span>
           </div>
-          <div className="text-xs font-black text-amber-400">
-            Blinds: {blindSmall}/{blindBig}
+          <div className="flex flex-col items-end">
+            <span className="text-xs font-black text-amber-400">
+              Blinds: {blindSmall}/{blindBig}
+            </span>
+            {nextBlindSmall != null && nextBlindBig != null && blindTimeLeft != null && (
+              <span className="text-[10px] font-bold text-slate-400">
+                Next {nextBlindSmall}/{nextBlindBig} in {formatTimeLeft(blindTimeLeft)}
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -414,11 +463,20 @@ export function PokerTable({
           {!isWaiting && (
             <div className="flex gap-1">
               {communityCards.map((card, i) => (
-                <CardDisplay key={i} card={card} small />
+                <CardDisplay key={i} card={card} small highlight={isShowdown && winnerBestCards?.includes(card)} />
               ))}
               {phase !== 'showdown' && Array.from({ length: 5 - communityCards.length }, (_, i) => (
                 <div key={`e-${i}`} className="w-7 h-10 rounded-lg border border-dashed border-emerald-400/30" />
               ))}
+            </div>
+          )}
+
+          {/* Winner's winning hand label */}
+          {isShowdown && winnerUserId && winnerBestCards && winnerBestCards.length > 0 && (
+            <div className="rounded-full bg-amber-500/90 px-3 py-0.5 border border-amber-300">
+              <span className="text-[10px] font-black text-white">
+                {usernames?.[winnerUserId] ?? 'Winner'} wins
+              </span>
             </div>
           )}
         </div>
@@ -443,6 +501,9 @@ export function PokerTable({
               displayName={displayName}
               position={pos}
               actionText={playerActions?.[player.user_id]}
+              winnerBestCards={winnerBestCards}
+              isWinner={player.user_id === winnerUserId}
+              myHandDescription={isMe ? myHandDescription : null}
             />
           );
         })}
@@ -450,13 +511,14 @@ export function PokerTable({
 
       {/* Action buttons */}
       {isMyTurn && validActions.length > 0 && !isShowdown && (
-        <div>
+        <div className="mt-1">
           <p className="text-center text-sm font-black text-blue-400 mb-2">Your turn!</p>
           <ActionButtons
             validActions={validActions}
             onAction={onAction}
             disabled={false}
             callAmount={callAmount}
+            currentBet={currentBet}
           />
         </div>
       )}

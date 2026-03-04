@@ -7,11 +7,15 @@ import {
   buildDeck, shuffleDeck, evaluateHand,
   getValidActions, getAiDecision, getCurrentBlinds,
   getNextActiveSeat, getFirstPostDealerSeat,
+  getTimeUntilBlindIncrease,
 } from './logic';
+import { BLIND_SCHEDULE } from './types';
 import type { PokerPlayerRow, PokerPhase, PlayerAction, Card } from './types';
 
 interface Props {
   numOpponents: number;
+  startingBlindLevel?: number;
+  blindIntervalMinutes?: number;
   onChangeSettings: () => void;
 }
 
@@ -61,10 +65,9 @@ function toPlayerRow(p: LocalPlayer): PokerPlayerRow {
   };
 }
 
-export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
+export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindIntervalMinutes = 10, onChangeSettings }: Props) {
   const router = useRouter();
   const STARTING_CHIPS = 1000;
-  const BLIND_INTERVAL = 5; // minutes for vs computer (faster)
 
   const [players, setPlayers] = useState<LocalPlayer[]>(() => {
     const all: LocalPlayer[] = [];
@@ -96,7 +99,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
   const [phase, setPhase] = useState<PokerPhase>('waiting');
   const [actionOnSeat, setActionOnSeat] = useState<number | null>(null);
   const [dealerSeat, setDealerSeat] = useState(-1);
-  const [blindLevel, setBlindLevel] = useState(0);
+  const [blindLevel, setBlindLevel] = useState(startingBlindLevel);
   const [handNumber, setHandNumber] = useState(0);
   const [lastAction, setLastAction] = useState<string | null>(null);
   const [playerActions, setPlayerActions] = useState<Record<string, string>>({});
@@ -104,6 +107,8 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
   const [gameOver, setGameOver] = useState(false);
   const [winnerId, setWinnerId] = useState<string | null>(null);
   const [showMyFoldedCards, setShowMyFoldedCards] = useState(false);
+
+  const [blindTimeLeft, setBlindTimeLeft] = useState<number | null>(null);
 
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancePhaseRef = useRef<() => void>(() => {});
@@ -129,9 +134,10 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
       return;
     }
 
-    // Update blind level
+    // Update blind level based on elapsed time + starting level
     const elapsed = (Date.now() - new Date(gameStartedAt).getTime()) / 1000;
-    const newLevel = Math.min(Math.floor(elapsed / (BLIND_INTERVAL * 60)), 9);
+    const levelsGained = blindIntervalMinutes > 0 ? Math.floor(elapsed / (blindIntervalMinutes * 60)) : 0;
+    const newLevel = Math.min(startingBlindLevel + levelsGained, 9);
     setBlindLevel(newLevel);
     const bl = getCurrentBlinds(newLevel);
 
@@ -228,7 +234,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     if (actualFirst === null) {
       setTimeout(() => advancePhaseRef.current(), 500);
     }
-  }, [players, dealerSeat, gameStartedAt, BLIND_INTERVAL]);
+  }, [players, dealerSeat, gameStartedAt, blindIntervalMinutes, startingBlindLevel]);
 
   // Auto-start first hand
   useEffect(() => {
@@ -336,15 +342,24 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     setPlayers(prev => {
       const active = prev.filter(p => !p.isEliminated);
 
-      // Evaluate hands
+      // Evaluate hands — don't set showCards yet, determined after pot awarding
       const evaluated = active.map(p => {
-        if (p.isFolded) return { ...p, score: 0, handDescription: null, showCards: false, bestCards: [] };
+        if (p.isFolded) {
+          // Still evaluate hand so description is available if player chooses to show
+          if (p.holeCards.length > 0 && community.length >= 3) {
+            const allCards = [...p.holeCards, ...community];
+            const { score, name, bestCards } = evaluateHand(allCards);
+            return { ...p, score, handDescription: name, showCards: false, bestCards };
+          }
+          return { ...p, score: 0, handDescription: null, showCards: false, bestCards: [] };
+        }
         const allCards = [...p.holeCards, ...community];
         const { score, name, bestCards } = evaluateHand(allCards);
-        return { ...p, score, handDescription: name, showCards: true, bestCards };
+        return { ...p, score, handDescription: name, showCards: false, bestCards };
       });
 
-      // Side pot awarding
+      // Side pot awarding — track who wins a pot
+      const potWinners = new Set<string>();
       const bettors = evaluated.filter(p => p.totalBet > 0 || !p.isFolded);
       const sorted = [...bettors].sort((a, b) => a.totalBet - b.totalBet);
 
@@ -374,11 +389,19 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
             // First winner gets remainder chip(s) — standard poker odd-chip rule
             const bonus = wi === 0 ? remainder : 0;
             if (idx !== -1) evaluated[idx] = { ...evaluated[idx], chips: evaluated[idx].chips + share + bonus };
+            potWinners.add(winners[wi].userId);
           }
         }
 
         processed.add(player.userId);
         prevLevel = level;
+      }
+
+      // Only pot winners must show cards (standard poker rules — losers can muck)
+      for (let i = 0; i < evaluated.length; i++) {
+        if (potWinners.has(evaluated[i].userId)) {
+          evaluated[i] = { ...evaluated[i], showCards: true };
+        }
       }
 
       // Mark eliminated
@@ -460,7 +483,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
           setPot(pot => pot + raiseCost);
           setCurrentBet(clampedAmount);
           currentBetRef.current = clampedAmount;
-          actionText = `Raise ${clampedAmount}`;
+          actionText = betToMatch === 0 ? `Bet ${clampedAmount}` : `Raise ${clampedAmount}`;
           break;
         }
         case 'all_in': {
@@ -543,6 +566,25 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     processingActionRef.current = false;
   }, [actionOnSeat, phase]);
 
+  // Blind countdown timer
+  useEffect(() => {
+    if (blindIntervalMinutes <= 0 || blindLevel >= 9) {
+      setBlindTimeLeft(null);
+      return;
+    }
+    const tick = () => {
+      // Time is relative to startingBlindLevel — calculate when the NEXT level after current kicks in
+      const levelsGained = blindLevel - startingBlindLevel;
+      const nextLevelTime = (levelsGained + 1) * blindIntervalMinutes * 60 * 1000;
+      const gameStart = new Date(gameStartedAt).getTime();
+      const remaining = Math.max(0, gameStart + nextLevelTime - Date.now());
+      setBlindTimeLeft(remaining);
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [blindLevel, blindIntervalMinutes, startingBlindLevel, gameStartedAt]);
+
   // ── AI turn processing ─────────────────────────────────────────────────────
   useEffect(() => {
     if (phase === 'waiting' || phase === 'showdown') return;
@@ -582,16 +624,54 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
   const displayPlayers = players.map(toPlayerRow);
   const revealedCards: Record<string, string[]> = {};
   if (phase === 'showdown') {
+    // Show hole cards for pot winners (must show) and anyone who chose to show
     players.forEach(p => {
-      if (p.showCards && p.bestCards.length > 0) {
-        revealedCards[p.userId] = p.bestCards;
+      if (p.showCards && p.holeCards.length > 0) {
+        revealedCards[p.userId] = p.holeCards;
       }
     });
-    // Show folded human's hole cards if they chose to reveal
-    if (showMyFoldedCards && players[0].isFolded && players[0].holeCards.length > 0) {
+    // Human voluntarily showing cards (folded or non-winner)
+    if (showMyFoldedCards && players[0].holeCards.length > 0 && !players[0].showCards) {
       revealedCards['human'] = players[0].holeCards;
     }
   }
+
+  // Live hand description for the human player
+  let myHandDescription: string | null = null;
+  if (phase !== 'waiting' && phase !== 'showdown' && players[0].holeCards.length > 0 && !players[0].isFolded) {
+    const allCards = [...players[0].holeCards, ...communityCards];
+    if (allCards.length >= 5) {
+      const { name } = evaluateHand(allCards);
+      myHandDescription = name;
+    } else if (allCards.length === 2) {
+      // Preflop — check for pocket pair or just show high card
+      const r1 = allCards[0][0], r2 = allCards[1][0];
+      myHandDescription = r1 === r2 ? 'Pair' : 'High Card';
+    }
+  }
+
+  // Find the winner's best 5 cards for highlighting at showdown
+  let winnerBestCards: string[] = [];
+  let winnerUserId: string | null = null;
+  if (phase === 'showdown' && lastAction !== 'win_by_fold') {
+    const showdownPlayers = players.filter(p => p.showCards && !p.isFolded && p.bestCards.length > 0);
+    if (showdownPlayers.length > 0) {
+      // Find the player with the highest hand score
+      let bestScore = 0;
+      for (const p of showdownPlayers) {
+        const allCards = [...p.holeCards, ...communityCards];
+        const { score } = evaluateHand(allCards);
+        if (score > bestScore) {
+          bestScore = score;
+          winnerBestCards = p.bestCards;
+          winnerUserId = p.userId;
+        }
+      }
+    }
+  }
+
+  // Next blind level info
+  const nextBlinds = blindLevel < 9 ? getCurrentBlinds(blindLevel + 1) : null;
 
   const usernameMap: Record<string, string> = {};
   players.forEach(p => { usernameMap[p.userId] = p.name; });
@@ -637,7 +717,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
             >
               🃏 Deal Next Hand
             </button>
-            {players[0].isFolded && !showMyFoldedCards && (
+            {!players[0].showCards && !showMyFoldedCards && players[0].holeCards.length > 0 && (
               <button
                 onClick={() => setShowMyFoldedCards(true)}
                 className="rounded-2xl border-2 border-slate-400 bg-slate-600 px-4 py-3 font-black text-white shadow transition hover:bg-slate-700 active:scale-95"
@@ -669,6 +749,12 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
         lastAction={lastAction}
         usernames={usernameMap}
         playerActions={playerActions}
+        winnerBestCards={winnerBestCards}
+        winnerUserId={winnerUserId}
+        myHandDescription={myHandDescription}
+        nextBlindSmall={nextBlinds?.small ?? null}
+        nextBlindBig={nextBlinds?.big ?? null}
+        blindTimeLeft={blindTimeLeft}
       />
     </div>
   );
