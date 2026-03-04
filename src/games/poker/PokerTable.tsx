@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   SUIT_SYMBOLS, SUIT_COLORS, RANK_DISPLAY,
   type PokerPlayerRow, type PokerPhase, type ValidAction, type PlayerAction,
@@ -35,13 +35,20 @@ function ActionButtons({
   validActions,
   onAction,
   disabled,
+  callAmount,
 }: {
   validActions: ValidAction[];
   onAction: (action: PlayerAction, amount?: number) => void;
   disabled: boolean;
+  callAmount: number;
 }) {
   const [raiseAmount, setRaiseAmount] = useState<number>(0);
   const raiseAction = validActions.find(a => a.action === 'raise');
+
+  // Reset slider when raise range changes (new hand/round)
+  useEffect(() => {
+    setRaiseAmount(0);
+  }, [raiseAction?.minAmount, raiseAction?.maxAmount]);
 
   const handleRaise = () => {
     if (!raiseAction) return;
@@ -60,7 +67,7 @@ function ActionButtons({
   const actionLabels: Record<string, string> = {
     fold: 'Fold',
     check: 'Check',
-    call: 'Call',
+    call: callAmount > 0 ? `Call ${callAmount}` : 'Call',
     raise: 'Raise',
     all_in: 'All In',
   };
@@ -184,6 +191,7 @@ function PlayerSeat({
   isWaiting,
   displayName,
   position,
+  actionText,
 }: {
   player: PokerPlayerRow;
   isMe: boolean;
@@ -194,6 +202,7 @@ function PlayerSeat({
   isWaiting: boolean;
   displayName: string;
   position: [number, number];
+  actionText?: string;
 }) {
   const showHoleCards = isMe && myHoleCards.length > 0;
   const showRevealed = isShowdown && revealedCards && revealedCards.length > 0;
@@ -268,6 +277,9 @@ function PlayerSeat({
         {player.hand_description && isShowdown && !player.is_folded && (
           <span className="text-[9px] font-bold text-green-300 truncate max-w-[72px]">{player.hand_description}</span>
         )}
+        {actionText && !isShowdown && (
+          <span className="text-[9px] font-bold text-sky-300">{actionText}</span>
+        )}
       </div>
 
       {/* Bet chip */}
@@ -319,6 +331,7 @@ export interface PokerTableProps {
   handNumber: number;
   lastAction: string | null;
   usernames?: Record<string, string>;
+  playerActions?: Record<string, string>;
 }
 
 export function PokerTable({
@@ -340,9 +353,12 @@ export function PokerTable({
   handNumber,
   lastAction,
   usernames,
+  playerActions,
 }: PokerTableProps) {
   const isShowdown = phase === 'showdown';
   const isWaiting = phase === 'waiting';
+  const myPlayer = players.find(p => p.user_id === myUserId);
+  const callAmount = currentBet - (myPlayer?.current_bet ?? 0);
 
   // Sort players: human first (seat 0), then by seat
   const sorted = [...players].sort((a, b) => {
@@ -426,6 +442,7 @@ export function PokerTable({
               isWaiting={isWaiting}
               displayName={displayName}
               position={pos}
+              actionText={playerActions?.[player.user_id]}
             />
           );
         })}
@@ -439,6 +456,7 @@ export function PokerTable({
             validActions={validActions}
             onAction={onAction}
             disabled={false}
+            callAmount={callAmount}
           />
         </div>
       )}

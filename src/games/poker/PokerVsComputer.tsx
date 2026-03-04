@@ -98,6 +98,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
   const [blindLevel, setBlindLevel] = useState(0);
   const [handNumber, setHandNumber] = useState(0);
   const [lastAction, setLastAction] = useState<string | null>(null);
+  const [playerActions, setPlayerActions] = useState<Record<string, string>>({});
   const [gameStartedAt] = useState(() => new Date().toISOString());
   const [gameOver, setGameOver] = useState(false);
   const [winnerId, setWinnerId] = useState<string | null>(null);
@@ -105,6 +106,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancePhaseRef = useRef<() => void>(() => {});
   const processingActionRef = useRef(false);
+  const currentBetRef = useRef(0);
 
   const activePlayers = players.filter(p => !p.isEliminated);
   const activeSeats = activePlayers.map(p => p.seat).sort((a, b) => a - b);
@@ -216,6 +218,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     setActionOnSeat(actualFirst);
     setHandNumber(h => h + 1);
     setLastAction(null);
+    setPlayerActions({});
 
     // If no one can act (all-in from blinds), auto-advance through all streets
     if (actualFirst === null) {
@@ -260,28 +263,32 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
     setPhase(nextPhase);
 
     // Reset bets and hasActedThisRound for the new betting round
-    const updated = players.map(p => ({ ...p, currentBet: 0, hasActedThisRound: false }));
-    setPlayers(updated);
+    setPlayers(prev => {
+      const updated = prev.map(p => ({ ...p, currentBet: 0, hasActedThisRound: false }));
+      const activeS = updated.filter(p => !p.isEliminated).map(p => p.seat).sort((a, b) => a - b);
+      const foldedSet = new Set(updated.filter(p => p.isFolded || p.isEliminated).map(p => p.seat));
+      const allinSet = new Set(updated.filter(p => p.isAllIn).map(p => p.seat));
+      const first = getFirstPostDealerSeat(activeS, dealerSeat, foldedSet, allinSet);
+
+      if (first === null) {
+        setTimeout(() => advancePhaseAfterAllIn(nextPhase, newCommunity, newIdx), 800);
+      } else {
+        setActionOnSeat(first);
+      }
+
+      return updated;
+    });
     setCurrentBet(0);
-
-    // Find first to act after dealer
-    const foldedSet = new Set(updated.filter(p => p.isFolded || p.isEliminated).map(p => p.seat));
-    const allinSet = new Set(updated.filter(p => p.isAllIn).map(p => p.seat));
-    const first = getFirstPostDealerSeat(activeSeats, dealerSeat, foldedSet, allinSet);
-
-    if (first === null) {
-      // Everyone all-in, auto-advance
-      setTimeout(() => advancePhaseAfterAllIn(nextPhase, newCommunity, newIdx), 800);
-    } else {
-      setActionOnSeat(first);
-    }
+    currentBetRef.current = 0;
+    setPlayerActions({});
     setLastAction(null);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, communityCards, deck, deckIdx, players, activeSeats, dealerSeat]);
+  }, [phase, communityCards, deck, deckIdx, dealerSeat]);
 
-  // Keep ref in sync so setTimeout always calls the latest version
+  // Keep refs in sync so setTimeout always uses latest values
   advancePhaseRef.current = advancePhase;
+  currentBetRef.current = currentBet;
 
   const advancePhaseAfterAllIn = useCallback((currentPhase: PokerPhase, community: string[], dIdx: number) => {
     const phaseOrder: PokerPhase[] = ['preflop', 'flop', 'turn', 'river', 'showdown'];
@@ -395,7 +402,6 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
 
       setPhase('showdown');
       setActionOnSeat(null);
-      setPot(0);
       setLastAction('showdown');
 
       // Check if game is over
@@ -417,13 +423,17 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
       if (idx === -1) return prev;
       const p = { ...updated[idx] };
 
-      const callAmount = currentBet - p.currentBet;
+      const betToMatch = currentBetRef.current;
+      const callAmount = betToMatch - p.currentBet;
+      let actionText = '';
 
       switch (action) {
         case 'fold':
           p.isFolded = true;
+          actionText = 'Fold';
           break;
         case 'check':
+          actionText = 'Check';
           break;
         case 'call': {
           const actual = Math.min(callAmount, p.chips);
@@ -432,16 +442,20 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
           p.totalBet += actual;
           p.isAllIn = p.chips === 0;
           setPot(pot => pot + actual);
+          actionText = `Call ${actual}`;
           break;
         }
         case 'raise': {
-          const raiseCost = (amount ?? 0) - p.currentBet;
+          const clampedAmount = Math.max(p.currentBet, Math.min(amount ?? 0, p.currentBet + p.chips));
+          const raiseCost = clampedAmount - p.currentBet;
           p.chips -= raiseCost;
-          p.currentBet = amount ?? 0;
+          p.currentBet = clampedAmount;
           p.totalBet += raiseCost;
           p.isAllIn = p.chips === 0;
           setPot(pot => pot + raiseCost);
-          setCurrentBet(amount ?? 0);
+          setCurrentBet(clampedAmount);
+          currentBetRef.current = clampedAmount;
+          actionText = `Raise ${clampedAmount}`;
           break;
         }
         case 'all_in': {
@@ -452,7 +466,11 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
           p.totalBet += allInAmount;
           p.isAllIn = true;
           setPot(pot => pot + allInAmount);
-          if (newBet > currentBet) setCurrentBet(newBet);
+          if (newBet > betToMatch) {
+            setCurrentBet(newBet);
+            currentBetRef.current = newBet;
+          }
+          actionText = 'All In';
           break;
         }
       }
@@ -461,7 +479,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
       updated[idx] = p;
 
       // On raise or all-in that raises, other players need to respond
-      if (action === 'raise' || (action === 'all_in' && p.currentBet > currentBet)) {
+      if (action === 'raise' || (action === 'all_in' && p.currentBet > betToMatch)) {
         for (let i = 0; i < updated.length; i++) {
           if (i !== idx && !updated[i].isFolded && !updated[i].isAllIn && !updated[i].isEliminated) {
             updated[i] = { ...updated[i], hasActedThisRound: false };
@@ -470,6 +488,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
       }
 
       setLastAction(action);
+      setPlayerActions(pa => ({ ...pa, [userId]: actionText }));
 
       // Check if only one player remaining (everyone else folded)
       const notFolded = updated.filter(q => !q.isEliminated && !q.isFolded);
@@ -512,7 +531,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
       setActionOnSeat(nextSeat);
       return updated;
     });
-  }, [currentBet, advancePhase]);
+  }, [advancePhase]);
 
   // Clear double-click guard when action moves away from human
   useEffect(() => {
@@ -632,6 +651,7 @@ export function PokerVsComputer({ numOpponents, onChangeSettings }: Props) {
         handNumber={handNumber}
         lastAction={lastAction}
         usernames={usernameMap}
+        playerActions={playerActions}
       />
     </div>
   );
