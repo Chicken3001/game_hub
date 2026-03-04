@@ -409,7 +409,11 @@ export function PokerTable({
     return a.seat - b.seat;
   });
 
-  const nonEliminated = sorted.filter(p => !p.is_eliminated);
+  // At showdown, include just-eliminated players so they're visible for the result
+  // (hand_description is non-null only for players who participated this hand)
+  const nonEliminated = sorted.filter(p =>
+    !p.is_eliminated || (isShowdown && p.hand_description !== null)
+  );
   const totalSeats = Math.max(nonEliminated.length, 2);
   const positions = SEAT_POSITIONS[Math.min(totalSeats, 9)] ?? SEAT_POSITIONS[9];
 
