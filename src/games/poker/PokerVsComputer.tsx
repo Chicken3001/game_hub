@@ -117,6 +117,8 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
   const processingActionRef = useRef(false);
   const currentBetRef = useRef(0);
   const lastRaiseSizeRef = useRef(0);
+  const playersRef = useRef(players);
+  playersRef.current = players;
 
   const activePlayers = players.filter(p => !p.isEliminated);
   const activeSeats = activePlayers.map(p => p.seat).sort((a, b) => a - b);
@@ -221,6 +223,7 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
       }
     }
 
+    playersRef.current = updated;
     setPlayers(updated);
     setDeckIdx(idx);
     setCommunityCards([]);
@@ -282,21 +285,21 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     let firstSeatToAct: number | null = null;
     let allInAdvance = false;
 
-    setPlayers(prev => {
-      const updated = prev.map(p => ({ ...p, currentBet: 0, hasActedThisRound: false }));
-      const activeS = updated.filter(p => !p.isEliminated).map(p => p.seat).sort((a, b) => a - b);
-      const foldedSet = new Set(updated.filter(p => p.isFolded || p.isEliminated).map(p => p.seat));
-      const allinSet = new Set(updated.filter(p => p.isAllIn).map(p => p.seat));
-      const first = getFirstPostDealerSeat(activeS, dealerSeat, foldedSet, allinSet);
+    const prevPlayers = playersRef.current;
+    const updatedPlayers = prevPlayers.map(p => ({ ...p, currentBet: 0, hasActedThisRound: false }));
+    const activeS = updatedPlayers.filter(p => !p.isEliminated).map(p => p.seat).sort((a, b) => a - b);
+    const foldedSet = new Set(updatedPlayers.filter(p => p.isFolded || p.isEliminated).map(p => p.seat));
+    const allinSet = new Set(updatedPlayers.filter(p => p.isAllIn).map(p => p.seat));
+    const first = getFirstPostDealerSeat(activeS, dealerSeat, foldedSet, allinSet);
 
-      if (first === null) {
-        allInAdvance = true;
-      } else {
-        firstSeatToAct = first;
-      }
+    if (first === null) {
+      allInAdvance = true;
+    } else {
+      firstSeatToAct = first;
+    }
 
-      return updated;
-    });
+    playersRef.current = updatedPlayers;
+    setPlayers(updatedPlayers);
 
     // setState calls OUTSIDE the updater
     if (allInAdvance) {
@@ -356,115 +359,105 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     runShowdownWith(communityCards);
   }
 
-  // Uses setPlayers(prev => ...) to always read the latest player state,
-  // avoiding stale closure bugs when called from advancePhaseAfterAllIn.
-  // State setters (setPhase etc.) are called AFTER setPlayers to avoid
-  // React batching issues from calling setState inside a setState updater.
+  // Reads from playersRef to avoid deferred updater issues.
   function runShowdownWith(community: string[]) {
-    let isOver = false;
-    let winner: string | null = null;
+    const prev = playersRef.current;
+    const active = prev.filter(p => !p.isEliminated);
 
-    setPlayers(prev => {
-      const active = prev.filter(p => !p.isEliminated);
-
-      // Evaluate hands — don't set showCards yet, determined after pot awarding
-      const evaluated = active.map(p => {
-        if (p.isFolded) {
-          // Still evaluate hand so description is available if player chooses to show
-          if (p.holeCards.length > 0 && community.length >= 3) {
-            const allCards = [...p.holeCards, ...community];
-            const { score, name, bestCards } = evaluateHand(allCards);
-            return { ...p, score, handDescription: name, showCards: false, bestCards };
-          }
-          return { ...p, score: 0, handDescription: null, showCards: false, bestCards: [] };
+    // Evaluate hands — don't set showCards yet, determined after pot awarding
+    const evaluated = active.map(p => {
+      if (p.isFolded) {
+        if (p.holeCards.length > 0 && community.length >= 3) {
+          const allCards = [...p.holeCards, ...community];
+          const { score, name, bestCards } = evaluateHand(allCards);
+          return { ...p, score, handDescription: name, showCards: false, bestCards };
         }
-        const allCards = [...p.holeCards, ...community];
-        const { score, name, bestCards } = evaluateHand(allCards);
-        return { ...p, score, handDescription: name, showCards: false, bestCards };
-      });
-
-      // Side pot awarding — track who wins a pot
-      const potWinners = new Set<string>();
-      const bettors = evaluated.filter(p => p.totalBet > 0 || !p.isFolded);
-      const sorted = [...bettors].sort((a, b) => a.totalBet - b.totalBet);
-
-      const processed = new Set<string>();
-      let prevLevel = 0;
-
-      for (const player of sorted) {
-        if (player.totalBet <= prevLevel) { processed.add(player.userId); continue; }
-
-        const level = player.totalBet;
-        const contribution = level - prevLevel;
-        let potAmount = 0;
-        for (const p of evaluated) {
-          if (p.totalBet > prevLevel) {
-            potAmount += Math.min(p.totalBet - prevLevel, contribution);
-          }
-        }
-
-        const eligible = evaluated.filter(p => !p.isFolded && !processed.has(p.userId) && p.totalBet >= level);
-        if (eligible.length > 0) {
-          const bestScore = Math.max(...eligible.map(p => p.score ?? 0));
-          const winners = eligible.filter(p => p.score === bestScore);
-          const share = Math.floor(potAmount / winners.length);
-          const remainder = potAmount - share * winners.length;
-          for (let wi = 0; wi < winners.length; wi++) {
-            const idx = evaluated.findIndex(p => p.userId === winners[wi].userId);
-            // First winner gets remainder chip(s) — standard poker odd-chip rule
-            const bonus = wi === 0 ? remainder : 0;
-            if (idx !== -1) evaluated[idx] = { ...evaluated[idx], chips: evaluated[idx].chips + share + bonus };
-            potWinners.add(winners[wi].userId);
-          }
-        }
-
-        processed.add(player.userId);
-        prevLevel = level;
+        return { ...p, score: 0, handDescription: null, showCards: false, bestCards: [] };
       }
-
-      // Only pot winners must show cards (standard poker rules — losers can muck)
-      for (let i = 0; i < evaluated.length; i++) {
-        if (potWinners.has(evaluated[i].userId)) {
-          evaluated[i] = { ...evaluated[i], showCards: true };
-        }
-      }
-
-      // Mark eliminated
-      const final = evaluated.map(p => ({
-        ...p,
-        isEliminated: p.isEliminated || p.chips === 0,
-        totalBet: 0,
-        currentBet: 0,
-      }));
-
-      // Build back LocalPlayer array
-      const result: LocalPlayer[] = prev.map(p => {
-        const ev = final.find(e => e.userId === p.userId);
-        if (!ev) return p;
-        return {
-          ...p,
-          chips: ev.chips,
-          isEliminated: ev.isEliminated,
-          handDescription: ev.handDescription,
-          showCards: ev.showCards,
-          bestCards: ev.bestCards ?? [],
-          totalBet: 0,
-          currentBet: 0,
-        };
-      });
-
-      // Capture for use after setPlayers
-      const remaining = result.filter(p => !p.isEliminated);
-      if (remaining.length <= 1) {
-        isOver = true;
-        winner = remaining[0]?.userId ?? null;
-      }
-
-      return result;
+      const allCards = [...p.holeCards, ...community];
+      const { score, name, bestCards } = evaluateHand(allCards);
+      return { ...p, score, handDescription: name, showCards: false, bestCards };
     });
 
-    // Set these OUTSIDE the setPlayers updater so React batches them together
-    // in the same render cycle as the player state update
+    // Side pot awarding — track who wins a pot
+    const potWinners = new Set<string>();
+    const bettors = evaluated.filter(p => p.totalBet > 0 || !p.isFolded);
+    const sorted = [...bettors].sort((a, b) => a.totalBet - b.totalBet);
+
+    const processed = new Set<string>();
+    let prevLevel = 0;
+
+    for (const player of sorted) {
+      if (player.totalBet <= prevLevel) { processed.add(player.userId); continue; }
+
+      const level = player.totalBet;
+      const contribution = level - prevLevel;
+      let potAmount = 0;
+      for (const p of evaluated) {
+        if (p.totalBet > prevLevel) {
+          potAmount += Math.min(p.totalBet - prevLevel, contribution);
+        }
+      }
+
+      const eligible = evaluated.filter(p => !p.isFolded && !processed.has(p.userId) && p.totalBet >= level);
+      if (eligible.length > 0) {
+        const bestScore = Math.max(...eligible.map(p => p.score ?? 0));
+        const winners = eligible.filter(p => p.score === bestScore);
+        const share = Math.floor(potAmount / winners.length);
+        const remainder = potAmount - share * winners.length;
+        for (let wi = 0; wi < winners.length; wi++) {
+          const idx = evaluated.findIndex(p => p.userId === winners[wi].userId);
+          const bonus = wi === 0 ? remainder : 0;
+          if (idx !== -1) evaluated[idx] = { ...evaluated[idx], chips: evaluated[idx].chips + share + bonus };
+          potWinners.add(winners[wi].userId);
+        }
+      }
+
+      processed.add(player.userId);
+      prevLevel = level;
+    }
+
+    // Only pot winners must show cards (standard poker rules — losers can muck)
+    for (let i = 0; i < evaluated.length; i++) {
+      if (potWinners.has(evaluated[i].userId)) {
+        evaluated[i] = { ...evaluated[i], showCards: true };
+      }
+    }
+
+    // Mark eliminated
+    const final = evaluated.map(p => ({
+      ...p,
+      isEliminated: p.isEliminated || p.chips === 0,
+      totalBet: 0,
+      currentBet: 0,
+    }));
+
+    // Build back LocalPlayer array
+    const result: LocalPlayer[] = prev.map(p => {
+      const ev = final.find(e => e.userId === p.userId);
+      if (!ev) return p;
+      return {
+        ...p,
+        chips: ev.chips,
+        isEliminated: ev.isEliminated,
+        handDescription: ev.handDescription,
+        showCards: ev.showCards,
+        bestCards: ev.bestCards ?? [],
+        totalBet: 0,
+        currentBet: 0,
+      };
+    });
+
+    const remaining = result.filter(p => !p.isEliminated);
+    let isOver = false;
+    let winner: string | null = null;
+    if (remaining.length <= 1) {
+      isOver = true;
+      winner = remaining[0]?.userId ?? null;
+    }
+
+    playersRef.current = result;
+    setPlayers(result);
     setPhase('showdown');
     setActionOnSeat(null);
     setLastAction('showdown');
@@ -475,8 +468,15 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
   }
 
   // ── Process action ─────────────────────────────────────────────────────────
+  // Reads from playersRef to avoid React's deferred updater issue where
+  // setPlayers(prev => ...) may not run eagerly if the fiber has pending work.
   const processAction = useCallback((userId: string, action: PlayerAction, amount?: number) => {
-    // Signals from inside setPlayers updater for setState calls outside
+    const prev = playersRef.current;
+    const updated = [...prev];
+    const idx = updated.findIndex(p => p.userId === userId);
+    if (idx === -1) return;
+    const p = { ...updated[idx] };
+
     let potDelta = 0;
     let newCurrentBet: number | null = null;
     let newLastRaiseSize: number | null = null;
@@ -486,96 +486,90 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     let nextSeatToSet: number | null = null;
     let actionTextForLog = '';
 
-    setPlayers(prev => {
-      const updated = [...prev];
-      const idx = updated.findIndex(p => p.userId === userId);
-      if (idx === -1) return prev;
-      const p = { ...updated[idx] };
+    const betToMatch = currentBetRef.current;
+    const callAmount = betToMatch - p.currentBet;
 
-      const betToMatch = currentBetRef.current;
-      const callAmount = betToMatch - p.currentBet;
-
-      switch (action) {
-        case 'fold':
-          p.isFolded = true;
-          actionTextForLog = 'Fold';
-          break;
-        case 'check':
-          actionTextForLog = 'Check';
-          break;
-        case 'call': {
-          const actual = Math.min(callAmount, p.chips);
-          p.chips -= actual;
-          p.currentBet += actual;
-          p.totalBet += actual;
-          p.isAllIn = p.chips === 0;
-          potDelta = actual;
-          actionTextForLog = `Call ${actual}`;
-          break;
-        }
-        case 'raise': {
-          const clampedAmount = Math.max(betToMatch, Math.min(amount ?? betToMatch, p.currentBet + p.chips));
-          const raiseCost = clampedAmount - p.currentBet;
-          const raiseIncrement = clampedAmount - betToMatch;
-          p.chips -= raiseCost;
-          p.currentBet = clampedAmount;
-          p.totalBet += raiseCost;
-          p.isAllIn = p.chips === 0;
-          potDelta = raiseCost;
-          newCurrentBet = clampedAmount;
-          currentBetRef.current = clampedAmount;
-          newLastRaiseSize = raiseIncrement;
-          lastRaiseSizeRef.current = raiseIncrement;
-          actionTextForLog = betToMatch === 0 ? `Bet ${clampedAmount}` : `Raise ${clampedAmount}`;
-          break;
-        }
-        case 'all_in': {
-          const allInAmount = p.chips;
-          const newBet = p.currentBet + allInAmount;
-          p.chips = 0;
-          p.currentBet = newBet;
-          p.totalBet += allInAmount;
-          p.isAllIn = true;
-          potDelta = allInAmount;
-          if (newBet > betToMatch) {
-            const raiseIncrement = newBet - betToMatch;
-            if (raiseIncrement >= lastRaiseSizeRef.current) {
-              newLastRaiseSize = raiseIncrement;
-              lastRaiseSizeRef.current = raiseIncrement;
-            }
-            newCurrentBet = newBet;
-            currentBetRef.current = newBet;
+    switch (action) {
+      case 'fold':
+        p.isFolded = true;
+        actionTextForLog = 'Fold';
+        break;
+      case 'check':
+        actionTextForLog = 'Check';
+        break;
+      case 'call': {
+        const actual = Math.min(callAmount, p.chips);
+        p.chips -= actual;
+        p.currentBet += actual;
+        p.totalBet += actual;
+        p.isAllIn = p.chips === 0;
+        potDelta = actual;
+        actionTextForLog = `Call ${actual}`;
+        break;
+      }
+      case 'raise': {
+        const clampedAmount = Math.max(betToMatch, Math.min(amount ?? betToMatch, p.currentBet + p.chips));
+        const raiseCost = clampedAmount - p.currentBet;
+        const raiseIncrement = clampedAmount - betToMatch;
+        p.chips -= raiseCost;
+        p.currentBet = clampedAmount;
+        p.totalBet += raiseCost;
+        p.isAllIn = p.chips === 0;
+        potDelta = raiseCost;
+        newCurrentBet = clampedAmount;
+        currentBetRef.current = clampedAmount;
+        newLastRaiseSize = raiseIncrement;
+        lastRaiseSizeRef.current = raiseIncrement;
+        actionTextForLog = betToMatch === 0 ? `Bet ${clampedAmount}` : `Raise ${clampedAmount}`;
+        break;
+      }
+      case 'all_in': {
+        const allInAmount = p.chips;
+        const newBet = p.currentBet + allInAmount;
+        p.chips = 0;
+        p.currentBet = newBet;
+        p.totalBet += allInAmount;
+        p.isAllIn = true;
+        potDelta = allInAmount;
+        if (newBet > betToMatch) {
+          const raiseIncrement = newBet - betToMatch;
+          if (raiseIncrement >= lastRaiseSizeRef.current) {
+            newLastRaiseSize = raiseIncrement;
+            lastRaiseSizeRef.current = raiseIncrement;
           }
-          actionTextForLog = 'All In';
-          break;
+          newCurrentBet = newBet;
+          currentBetRef.current = newBet;
+        }
+        actionTextForLog = 'All In';
+        break;
+      }
+    }
+
+    p.hasActedThisRound = true;
+    updated[idx] = p;
+
+    // On raise or full-raise all-in, other players need to respond
+    const isFullRaise = action === 'raise' ||
+      (action === 'all_in' && p.currentBet > betToMatch && (p.currentBet - betToMatch) >= lastRaiseSizeRef.current);
+    if (isFullRaise) {
+      for (let i = 0; i < updated.length; i++) {
+        if (i !== idx && !updated[i].isFolded && !updated[i].isAllIn && !updated[i].isEliminated) {
+          updated[i] = { ...updated[i], hasActedThisRound: false };
         }
       }
+    }
 
-      p.hasActedThisRound = true;
-      updated[idx] = p;
+    // Check if only one player remaining (everyone else folded)
+    const notFolded = updated.filter(q => !q.isEliminated && !q.isFolded);
+    if (notFolded.length === 1) {
+      const winnerIdx = updated.findIndex(q => q.userId === notFolded[0].userId);
+      const totalBets = updated.reduce((s, q) => s + q.totalBet, 0);
+      updated[winnerIdx] = { ...updated[winnerIdx], chips: updated[winnerIdx].chips + totalBets };
+      updated.forEach((q, i) => { updated[i] = { ...q, totalBet: 0, currentBet: 0 }; });
+      winByFold = true;
+    }
 
-      // On raise or full-raise all-in, other players need to respond
-      const isFullRaise = action === 'raise' ||
-        (action === 'all_in' && p.currentBet > betToMatch && (p.currentBet - betToMatch) >= lastRaiseSizeRef.current);
-      if (isFullRaise) {
-        for (let i = 0; i < updated.length; i++) {
-          if (i !== idx && !updated[i].isFolded && !updated[i].isAllIn && !updated[i].isEliminated) {
-            updated[i] = { ...updated[i], hasActedThisRound: false };
-          }
-        }
-      }
-
-      // Check if only one player remaining (everyone else folded)
-      const notFolded = updated.filter(q => !q.isEliminated && !q.isFolded);
-      if (notFolded.length === 1) {
-        const winnerIdx = updated.findIndex(q => q.userId === notFolded[0].userId);
-        const totalBets = updated.reduce((s, q) => s + q.totalBet, 0);
-        updated[winnerIdx] = { ...updated[winnerIdx], chips: updated[winnerIdx].chips + totalBets };
-        updated.forEach((q, i) => { updated[i] = { ...q, totalBet: 0, currentBet: 0 }; });
-        winByFold = true;
-        return updated;
-      }
-
+    if (!winByFold) {
       // Find next seat
       const foldedSet = new Set(updated.filter(q => q.isFolded || q.isEliminated).map(q => q.seat));
       const allinSet = new Set(updated.filter(q => q.isAllIn).map(q => q.seat));
@@ -585,26 +579,26 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
       if (nextSeat === null) {
         advanceAfter = true;
         advanceDelay = 500;
-        return updated;
+      } else {
+        // Check if round complete
+        const canAct = updated.filter(q => !q.isEliminated && !q.isFolded && !q.isAllIn);
+        const maxBet = Math.max(...canAct.map(q => q.currentBet), 0);
+        const allEqual = canAct.every(q => q.currentBet >= maxBet);
+        const allActed = canAct.every(q => q.hasActedThisRound);
+
+        if (allEqual && allActed) {
+          advanceAfter = true;
+          advanceDelay = 300;
+        } else {
+          nextSeatToSet = nextSeat;
+        }
       }
+    }
 
-      // Check if round complete
-      const canAct = updated.filter(q => !q.isEliminated && !q.isFolded && !q.isAllIn);
-      const maxBet = Math.max(...canAct.map(q => q.currentBet), 0);
-      const allEqual = canAct.every(q => q.currentBet >= maxBet);
-      const allActed = canAct.every(q => q.hasActedThisRound);
+    // Update ref immediately so subsequent reads see the latest state
+    playersRef.current = updated;
+    setPlayers(updated);
 
-      if (allEqual && allActed) {
-        advanceAfter = true;
-        advanceDelay = 300;
-        return updated;
-      }
-
-      nextSeatToSet = nextSeat;
-      return updated;
-    });
-
-    // All setState calls OUTSIDE the updater for proper React batching
     if (potDelta > 0) setPot(pot => pot + potDelta);
     if (newCurrentBet !== null) setCurrentBet(newCurrentBet);
     if (newLastRaiseSize !== null) setLastRaiseSize(newLastRaiseSize);
@@ -617,12 +611,12 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
       setActionOnSeat(null);
       setLastAction('win_by_fold');
     } else if (advanceAfter) {
-      setActionOnSeat(null);  // Hide buttons during phase transition
+      setActionOnSeat(null);
       setTimeout(() => advancePhaseRef.current(), advanceDelay);
     } else if (nextSeatToSet !== null) {
       setActionOnSeat(nextSeatToSet);
     }
-  }, [advancePhase]);
+  }, []);
 
   // Clear double-click guard when turn or phase changes
   useEffect(() => {
