@@ -410,6 +410,7 @@ export interface PokerTableProps {
   nextBlindSmall?: number | null;
   nextBlindBig?: number | null;
   blindTimeLeft?: number | null;
+  actionTimeLeft?: number | null;
 }
 
 export function PokerTable({
@@ -438,6 +439,7 @@ export function PokerTable({
   nextBlindSmall,
   nextBlindBig,
   blindTimeLeft,
+  actionTimeLeft,
 }: PokerTableProps) {
   const isShowdown = phase === 'showdown';
   const isWaiting = phase === 'waiting';
@@ -573,7 +575,16 @@ export function PokerTable({
       {/* Action buttons */}
       {isMyTurn && validActions.length > 0 && !isShowdown && (
         <div className="mt-1">
-          <p className="text-center text-sm font-black text-blue-400 mb-2">Your turn!</p>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <p className="text-sm font-black text-blue-400">Your turn!</p>
+            {actionTimeLeft != null && actionTimeLeft > 0 && (
+              <span className={`text-sm font-black ${
+                actionTimeLeft <= 5 ? 'text-red-500' : actionTimeLeft <= 10 ? 'text-amber-400' : 'text-green-400'
+              }`}>
+                ⏱ {actionTimeLeft}s
+              </span>
+            )}
+          </div>
           <ActionButtons
             validActions={validActions}
             onAction={onAction}

@@ -21,10 +21,28 @@ const INTERVAL_OPTIONS = [
   { minutes: 30, label: '30 min' },
 ];
 
+const ACTION_TIME_OPTIONS = [
+  { seconds: 15, label: '15s' },
+  { seconds: 30, label: '30s' },
+  { seconds: 45, label: '45s' },
+  { seconds: 60, label: '60s' },
+  { seconds: 0, label: 'No Limit' },
+];
+
+const SHOWDOWN_TIME_OPTIONS = [
+  { seconds: 5, label: '5s' },
+  { seconds: 7, label: '7s' },
+  { seconds: 10, label: '10s' },
+  { seconds: 15, label: '15s' },
+  { seconds: 0, label: 'Manual' },
+];
+
 interface GameSettings {
   numOpponents: number;
   startingBlindLevel: number;
   blindIntervalMinutes: number;
+  actionTimeSeconds: number;
+  showdownTimeSeconds: number;
 }
 
 export default function PokerComputerPage() {
@@ -33,6 +51,8 @@ export default function PokerComputerPage() {
   const [showBlindOptions, setShowBlindOptions] = useState(false);
   const [startingBlindLevel, setStartingBlindLevel] = useState(0);
   const [blindInterval, setBlindInterval] = useState(10);
+  const [actionTime, setActionTime] = useState(30);
+  const [showdownTime, setShowdownTime] = useState(7);
 
   if (settings !== null) {
     return (
@@ -52,6 +72,8 @@ export default function PokerComputerPage() {
           numOpponents={settings.numOpponents}
           startingBlindLevel={settings.startingBlindLevel}
           blindIntervalMinutes={settings.blindIntervalMinutes}
+          actionTimeSeconds={settings.actionTimeSeconds}
+          showdownTimeSeconds={settings.showdownTimeSeconds}
           onChangeSettings={() => setSettings(null)}
         />
       </div>
@@ -83,7 +105,7 @@ export default function PokerComputerPage() {
               <div>
                 <p className="text-sm font-black text-slate-700">Blind Settings</p>
                 <p className="text-xs text-slate-400">
-                  Starting {blinds.small}/{blinds.big} — levels every {blindInterval}min
+                  Starting {blinds.small}/{blinds.big} — levels every {blindInterval}min — {actionTime > 0 ? `${actionTime}s to act` : 'no time limit'}
                 </p>
               </div>
               <span className="text-slate-400 text-lg">{showBlindOptions ? '▲' : '▼'}</span>
@@ -131,12 +153,52 @@ export default function PokerComputerPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Action timer */}
+              <div>
+                <p className="text-xs font-black text-slate-500 mb-2">Time to Act</p>
+                <div className="flex gap-2 flex-wrap">
+                  {ACTION_TIME_OPTIONS.map(opt => (
+                    <button
+                      key={opt.seconds}
+                      onClick={() => setActionTime(opt.seconds)}
+                      className={`rounded-lg border-2 px-3 py-1.5 text-xs font-black transition active:scale-95 ${
+                        opt.seconds === actionTime
+                          ? 'border-amber-400 bg-amber-500 text-white'
+                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Showdown timer */}
+              <div>
+                <p className="text-xs font-black text-slate-500 mb-2">Showdown Delay</p>
+                <div className="flex gap-2 flex-wrap">
+                  {SHOWDOWN_TIME_OPTIONS.map(opt => (
+                    <button
+                      key={opt.seconds}
+                      onClick={() => setShowdownTime(opt.seconds)}
+                      className={`rounded-lg border-2 px-3 py-1.5 text-xs font-black transition active:scale-95 ${
+                        opt.seconds === showdownTime
+                          ? 'border-amber-400 bg-amber-500 text-white'
+                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
           {/* Start game button */}
           <button
-            onClick={() => setSettings({ numOpponents, startingBlindLevel, blindIntervalMinutes: blindInterval })}
+            onClick={() => setSettings({ numOpponents, startingBlindLevel, blindIntervalMinutes: blindInterval, actionTimeSeconds: actionTime, showdownTimeSeconds: showdownTime })}
             className="rounded-2xl border-2 border-emerald-400 bg-emerald-600 px-6 py-4 font-black text-white text-lg shadow transition hover:bg-emerald-700 active:scale-95"
           >
             Start Game

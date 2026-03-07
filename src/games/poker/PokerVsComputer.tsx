@@ -16,6 +16,8 @@ interface Props {
   numOpponents: number;
   startingBlindLevel?: number;
   blindIntervalMinutes?: number;
+  actionTimeSeconds?: number;
+  showdownTimeSeconds?: number;
   onChangeSettings: () => void;
 }
 
@@ -65,7 +67,7 @@ function toPlayerRow(p: LocalPlayer): PokerPlayerRow {
   };
 }
 
-export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindIntervalMinutes = 10, onChangeSettings }: Props) {
+export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindIntervalMinutes = 10, actionTimeSeconds = 30, showdownTimeSeconds = 7, onChangeSettings }: Props) {
   const router = useRouter();
   const STARTING_CHIPS = 1000;
 
@@ -111,6 +113,8 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
   const [blindTimeLeft, setBlindTimeLeft] = useState<number | null>(null);
 
   const [lastRaiseSize, setLastRaiseSize] = useState(0);
+  const [actionTimeLeft, setActionTimeLeft] = useState<number | null>(null);
+  const [showdownTimeLeft, setShowdownTimeLeft] = useState<number | null>(null);
 
   const aiTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancePhaseRef = useRef<() => void>(() => {});
@@ -648,6 +652,76 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     return () => clearInterval(interval);
   }, [blindLevel, blindIntervalMinutes, startingBlindLevel, gameStartedAt]);
 
+  // ── Human action timer ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (
+      actionTimeSeconds <= 0 ||
+      actionOnSeat !== 0 ||
+      phase === 'waiting' ||
+      phase === 'showdown' ||
+      players[0].isFolded ||
+      players[0].isAllIn ||
+      players[0].isEliminated
+    ) {
+      setActionTimeLeft(null);
+      return;
+    }
+
+    setActionTimeLeft(actionTimeSeconds);
+    const interval = setInterval(() => {
+      setActionTimeLeft(prev => {
+        if (prev === null) return null;
+        const next = prev - 1;
+        if (next <= 0) {
+          clearInterval(interval);
+          // Auto-check if available, otherwise auto-fold
+          const actions = getValidActions(
+            playersRef.current[0].chips,
+            playersRef.current[0].currentBet,
+            currentBetRef.current,
+            blinds.big,
+            lastRaiseSizeRef.current,
+          );
+          const canCheck = actions.some(a => a.action === 'check');
+          // Use setTimeout(0) to avoid updating state inside setState
+          setTimeout(() => {
+            processAction('human', canCheck ? 'check' : 'fold');
+          }, 0);
+          return 0;
+        }
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actionOnSeat, phase, actionTimeSeconds]);
+
+  // ── Showdown auto-deal timer ───────────────────────────────────────────────
+  useEffect(() => {
+    if (phase !== 'showdown' || gameOver || showdownTimeSeconds <= 0) {
+      setShowdownTimeLeft(null);
+      return;
+    }
+
+    setShowdownTimeLeft(showdownTimeSeconds);
+    const interval = setInterval(() => {
+      setShowdownTimeLeft(prev => {
+        if (prev === null) return null;
+        const next = prev - 1;
+        if (next <= 0) {
+          clearInterval(interval);
+          setTimeout(() => dealHand(), 0);
+          return 0;
+        }
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, gameOver, showdownTimeSeconds]);
+
   // ── AI turn processing ─────────────────────────────────────────────────────
   useEffect(() => {
     if (phase === 'waiting' || phase === 'showdown') return;
@@ -773,19 +847,24 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
           <div className="rounded-xl bg-amber-100 border border-amber-300 px-4 py-2 text-center">
             <p className="text-sm font-black text-amber-800">
               {lastAction === 'win_by_fold' ? 'Everyone folded!' : 'Showdown!'}
+              {showdownTimeLeft != null && showdownTimeLeft > 0 && (
+                <span className="ml-2 text-amber-600">Next hand in {showdownTimeLeft}s</span>
+              )}
             </p>
           </div>
           <div className="flex gap-2 w-full">
-            <button
-              onClick={handleNextHand}
-              className="flex-1 rounded-2xl border-2 border-emerald-400 bg-emerald-600 px-6 py-3 font-black text-white shadow transition hover:bg-emerald-700 active:scale-95"
-            >
-              🃏 Deal Next Hand
-            </button>
+            {showdownTimeSeconds === 0 && (
+              <button
+                onClick={handleNextHand}
+                className="flex-1 rounded-2xl border-2 border-emerald-400 bg-emerald-600 px-6 py-3 font-black text-white shadow transition hover:bg-emerald-700 active:scale-95"
+              >
+                🃏 Deal Next Hand
+              </button>
+            )}
             {!players[0].showCards && !showMyFoldedCards && players[0].holeCards.length > 0 && (
               <button
                 onClick={() => setShowMyFoldedCards(true)}
-                className="rounded-2xl border-2 border-slate-400 bg-slate-600 px-4 py-3 font-black text-white shadow transition hover:bg-slate-700 active:scale-95"
+                className={`rounded-2xl border-2 border-slate-400 bg-slate-600 px-4 py-3 font-black text-white shadow transition hover:bg-slate-700 active:scale-95 ${showdownTimeSeconds === 0 ? '' : 'flex-1'}`}
               >
                 Show Cards
               </button>
@@ -820,6 +899,7 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
         nextBlindSmall={nextBlinds?.small ?? null}
         nextBlindBig={nextBlinds?.big ?? null}
         blindTimeLeft={blindTimeLeft}
+        actionTimeLeft={actionTimeLeft}
       />
     </div>
   );
