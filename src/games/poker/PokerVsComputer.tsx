@@ -233,15 +233,18 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     setLastRaiseSize(bl.big);
     lastRaiseSizeRef.current = bl.big;
     setPhase('preflop');
-    setActionOnSeat(actualFirst);
     setHandNumber(h => h + 1);
     setLastAction(null);
     setPlayerActions({});
     setShowMyFoldedCards(false);
 
-    // If no one can act (all-in from blinds), auto-advance through all streets
-    if (actualFirst === null) {
+    // If 0-1 players can act (rest are all-in from blinds), auto-advance
+    const canActAfterBlinds = updated.filter(p => !p.isEliminated && !p.isAllIn).length;
+    if (actualFirst === null || canActAfterBlinds <= 1) {
+      setActionOnSeat(null);
       setTimeout(() => advancePhaseRef.current(), 500);
+    } else {
+      setActionOnSeat(actualFirst);
     }
   }, [players, dealerSeat, gameStartedAt, blindIntervalMinutes, startingBlindLevel]);
 
@@ -292,7 +295,10 @@ export function PokerVsComputer({ numOpponents, startingBlindLevel = 0, blindInt
     const allinSet = new Set(updatedPlayers.filter(p => p.isAllIn).map(p => p.seat));
     const first = getFirstPostDealerSeat(activeS, dealerSeat, foldedSet, allinSet);
 
-    if (first === null) {
+    // Need at least 2 players who can act for a betting round to matter.
+    // If only 0-1 can act (rest are all-in/folded), auto-deal remaining streets.
+    const canActCount = updatedPlayers.filter(p => !p.isEliminated && !p.isFolded && !p.isAllIn).length;
+    if (first === null || canActCount <= 1) {
       allInAdvance = true;
     } else {
       firstSeatToAct = first;
