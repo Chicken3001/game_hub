@@ -164,13 +164,13 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
       return remaining;
     };
     if (tick() === 0) {
-      supabase.rpc('poker_timeout_action', { p_game_id: roomId }).catch(console.error);
+      supabase.rpc('poker_timeout_action', { p_game_id: roomId }).then(null, console.error);
       return;
     }
     const id = setInterval(() => {
       if (tick() === 0) {
         clearInterval(id);
-        supabase.rpc('poker_timeout_action', { p_game_id: roomId }).catch(console.error);
+        supabase.rpc('poker_timeout_action', { p_game_id: roomId }).then(null, console.error);
       }
     }, 1000);
     return () => clearInterval(id);
@@ -189,13 +189,13 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
       return remaining;
     };
     if (tick() === 0) {
-      supabase.rpc('poker_timeout_deal', { p_game_id: roomId }).catch(console.error);
+      supabase.rpc('poker_timeout_deal', { p_game_id: roomId }).then(null, console.error);
       return;
     }
     const id = setInterval(() => {
       if (tick() === 0) {
         clearInterval(id);
-        supabase.rpc('poker_timeout_deal', { p_game_id: roomId }).catch(console.error);
+        supabase.rpc('poker_timeout_deal', { p_game_id: roomId }).then(null, console.error);
       }
     }, 1000);
     return () => clearInterval(id);
