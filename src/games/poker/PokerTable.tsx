@@ -523,7 +523,7 @@ export function PokerTable({
           {isShowdown && winnerUserId && winnerBestCards && winnerBestCards.length > 0 && (
             <div className="rounded-full bg-amber-500/90 px-3 py-0.5 border border-amber-300">
               <span className="text-[10px] font-black text-white">
-                {usernames?.[winnerUserId] ?? 'Winner'} wins
+                {winnerUserId === myUserId ? 'You win' : `${usernames?.[winnerUserId] ?? 'Winner'} wins`}
               </span>
             </div>
           )}
@@ -560,10 +560,10 @@ export function PokerTable({
       {/* Human status — shown outside the table to avoid overlap with seat elements */}
       <div className="mt-4 flex items-center justify-center gap-3">
         {myHandDescription && !isShowdown && !myPlayer?.is_folded && (
-          <span className="text-sm font-black text-amber-400">{myHandDescription}</span>
+          <span className="rounded-full bg-slate-900/80 px-3 py-1 text-sm font-black text-amber-300 shadow">{myHandDescription}</span>
         )}
         {isShowdown && myPlayer?.hand_description && (
-          <span className="text-sm font-black text-amber-400">{myPlayer.hand_description}</span>
+          <span className="rounded-full bg-slate-900/80 px-3 py-1 text-sm font-black text-amber-300 shadow">{myPlayer.hand_description}</span>
         )}
         {!isShowdown && playerActions?.[myUserId ?? ''] && (
           <span className="rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-black text-slate-800 shadow">
