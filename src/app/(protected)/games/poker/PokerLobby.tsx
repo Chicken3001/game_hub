@@ -22,6 +22,8 @@ export function PokerLobby({ userId }: Props) {
   const [maxPlayers, setMaxPlayers] = useState(9);
   const [startingChips, setStartingChips] = useState(1000);
   const [blindInterval, setBlindInterval] = useState(10);
+  const [actionTime, setActionTime] = useState(30);
+  const [showdownTime, setShowdownTime] = useState(7);
 
   async function fetchUsernames(ids: string[]) {
     if (ids.length === 0) return;
@@ -103,6 +105,8 @@ export function PokerLobby({ userId }: Props) {
         max_players: maxPlayers,
         starting_chips: startingChips,
         blind_interval_minutes: blindInterval,
+        action_time_seconds: actionTime,
+        showdown_time_seconds: showdownTime,
       })
       .select()
       .single();
@@ -177,6 +181,34 @@ export function PokerLobby({ userId }: Props) {
             </select>
           </div>
 
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-semibold text-emerald-700">Time to Act</label>
+            <select
+              value={actionTime}
+              onChange={e => setActionTime(Number(e.target.value))}
+              className="rounded-lg border border-emerald-300 px-2 py-1 text-sm font-semibold"
+            >
+              {[15, 30, 45, 60].map(n => (
+                <option key={n} value={n}>{n}s</option>
+              ))}
+              <option value={0}>No Limit</option>
+            </select>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-semibold text-emerald-700">Showdown Delay</label>
+            <select
+              value={showdownTime}
+              onChange={e => setShowdownTime(Number(e.target.value))}
+              className="rounded-lg border border-emerald-300 px-2 py-1 text-sm font-semibold"
+            >
+              {[5, 7, 10, 15].map(n => (
+                <option key={n} value={n}>{n}s</option>
+              ))}
+              <option value={0}>Manual</option>
+            </select>
+          </div>
+
           <div className="flex gap-2">
             <button
               onClick={handleCreate}
@@ -221,6 +253,7 @@ export function PokerLobby({ userId }: Props) {
               <p className="font-black text-slate-800">{displayName(game)}</p>
               <p className="text-xs text-slate-400">
                 {game.max_players} max · {game.starting_chips} chips · {game.blind_interval_minutes}m blinds
+                {game.action_time_seconds > 0 ? ` · ${game.action_time_seconds}s timer` : ' · No limit'}
               </p>
             </div>
             <button

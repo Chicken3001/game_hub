@@ -56,6 +56,10 @@ export interface PokerGameRow {
   hand_started_at: string | null;
   winner_id: string | null;
   last_action: string | null;
+  action_time_seconds: number;
+  showdown_time_seconds: number;
+  action_deadline: string | null;
+  showdown_deadline: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -26,6 +26,8 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
   const [acting, setActing] = useState(false);
   const [dealingNext, setDealingNext] = useState(false);
   const [usernames, setUsernames] = useState<Record<string, string>>({});
+  const [actionTimeLeft, setActionTimeLeft] = useState<number | null>(null);
+  const [showdownTimeLeft, setShowdownTimeLeft] = useState<number | null>(null);
   const [opponentGone, setOpponentGone] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
 
@@ -149,6 +151,56 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
     return () => { supabase.removeChannel(channel); };
   }, [roomId, supabase]);
 
+  // ── Action timer (derived from server deadline) ──────────────────────────
+  useEffect(() => {
+    if (!game.action_deadline) {
+      setActionTimeLeft(null);
+      return;
+    }
+    const deadline = new Date(game.action_deadline).getTime();
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setActionTimeLeft(remaining);
+      return remaining;
+    };
+    if (tick() === 0) {
+      supabase.rpc('poker_timeout_action', { p_game_id: roomId }).then(() => {});
+      return;
+    }
+    const id = setInterval(() => {
+      if (tick() === 0) {
+        clearInterval(id);
+        supabase.rpc('poker_timeout_action', { p_game_id: roomId }).then(() => {});
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [game.action_deadline, roomId, supabase]);
+
+  // ── Showdown timer (derived from server deadline) ──────────────────────
+  useEffect(() => {
+    if (!game.showdown_deadline) {
+      setShowdownTimeLeft(null);
+      return;
+    }
+    const deadline = new Date(game.showdown_deadline).getTime();
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setShowdownTimeLeft(remaining);
+      return remaining;
+    };
+    if (tick() === 0) {
+      supabase.rpc('poker_timeout_deal', { p_game_id: roomId }).then(() => {});
+      return;
+    }
+    const id = setInterval(() => {
+      if (tick() === 0) {
+        clearInterval(id);
+        supabase.rpc('poker_timeout_deal', { p_game_id: roomId }).then(() => {});
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [game.showdown_deadline, roomId, supabase]);
+
   // ── Join game ──────────────────────────────────────────────────────────────
   async function handleJoin(seat: number) {
     if (myPlayer) return;
@@ -243,6 +295,7 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
           </p>
           <p className="text-sm font-semibold text-emerald-500">
             {players.length}/{game.max_players} players · {game.starting_chips} chips · {game.blind_interval_minutes}m blinds
+            {game.action_time_seconds > 0 ? ` · ${game.action_time_seconds}s timer` : ' · No time limit'}
           </p>
 
           {/* Seat list */}
@@ -330,17 +383,25 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
               {game.last_action === 'win_by_fold' ? 'Everyone folded!' : 'Showdown!'}
             </p>
           </div>
-          {isHost && (
-            <button
-              onClick={handleDealNext}
-              disabled={dealingNext}
-              className="w-full rounded-2xl border-2 border-emerald-400 bg-emerald-600 px-6 py-3 font-black text-white shadow transition hover:bg-emerald-700 disabled:opacity-60 active:scale-95"
-            >
-              {dealingNext ? '⏳ Dealing…' : '🃏 Deal Next Hand'}
-            </button>
-          )}
-          {!isHost && (
-            <p className="text-sm font-semibold text-slate-500">Waiting for host to deal next hand…</p>
+          {game.showdown_time_seconds > 0 && showdownTimeLeft !== null ? (
+            <p className="text-sm font-black text-emerald-600">
+              Next hand in {showdownTimeLeft}s
+            </p>
+          ) : (
+            <>
+              {isHost && (
+                <button
+                  onClick={handleDealNext}
+                  disabled={dealingNext}
+                  className="w-full rounded-2xl border-2 border-emerald-400 bg-emerald-600 px-6 py-3 font-black text-white shadow transition hover:bg-emerald-700 disabled:opacity-60 active:scale-95"
+                >
+                  {dealingNext ? '⏳ Dealing…' : '🃏 Deal Next Hand'}
+                </button>
+              )}
+              {!isHost && (
+                <p className="text-sm font-semibold text-slate-500">Waiting for host to deal next hand…</p>
+              )}
+            </>
           )}
         </div>
       )}
@@ -373,6 +434,7 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
         handNumber={game.hand_number}
         lastAction={game.last_action}
         usernames={usernames}
+        actionTimeLeft={actionTimeLeft}
       />
 
       {/* Player indicator */}
