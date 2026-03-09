@@ -62,6 +62,7 @@ function toPlayerRow(p: LocalPlayer): PokerPlayerRow {
     is_big_blind: p.isBigBlind,
     hand_description: p.handDescription,
     show_cards: p.showCards,
+    last_seen_at: new Date().toISOString(),
     created_at: '',
     updated_at: '',
   };

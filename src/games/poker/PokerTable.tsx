@@ -243,6 +243,7 @@ function PlayerSeat({
   winnerBestCards,
   isWinner,
   myHandDescription,
+  isDisconnected,
 }: {
   player: PokerPlayerRow;
   isMe: boolean;
@@ -257,6 +258,7 @@ function PlayerSeat({
   winnerBestCards?: string[];
   isWinner?: boolean;
   myHandDescription?: string | null;
+  isDisconnected?: boolean;
 }) {
   const showHoleCards = isMe && myHoleCards.length > 0 && !isShowdown;
   // At showdown, show revealed cards for players who must show or chose to show
@@ -275,7 +277,7 @@ function PlayerSeat({
 
   return (
     <div
-      className="absolute flex flex-col items-center gap-0.5"
+      className={`absolute flex flex-col items-center gap-0.5 ${isDisconnected ? 'opacity-50' : ''}`}
       style={{
         top: `${position[0]}%`,
         left: `${position[1]}%`,
@@ -341,6 +343,13 @@ function PlayerSeat({
         {player.current_bet > 0 && (
           <div className="absolute -right-2 -top-2 rounded-full bg-amber-400 border border-amber-600 px-1.5 py-0 shadow">
             <span className="text-[10px] font-black text-amber-900">{player.current_bet}</span>
+          </div>
+        )}
+
+        {/* DC badge */}
+        {isDisconnected && (
+          <div className="absolute -left-2 -top-2 rounded-full bg-red-500 border border-red-700 px-1.5 py-0 shadow">
+            <span className="text-[10px] font-black text-white">DC</span>
           </div>
         )}
       </div>
@@ -411,6 +420,7 @@ export interface PokerTableProps {
   nextBlindBig?: number | null;
   blindTimeLeft?: number | null;
   actionTimeLeft?: number | null;
+  disconnectedPlayers?: Set<string>;
 }
 
 export function PokerTable({
@@ -440,6 +450,7 @@ export function PokerTable({
   nextBlindBig,
   blindTimeLeft,
   actionTimeLeft,
+  disconnectedPlayers,
 }: PokerTableProps) {
   const isShowdown = phase === 'showdown';
   const isWaiting = phase === 'waiting';
@@ -552,6 +563,7 @@ export function PokerTable({
               winnerBestCards={winnerBestCards}
               isWinner={player.user_id === winnerUserId}
               myHandDescription={isMe ? myHandDescription : null}
+              isDisconnected={disconnectedPlayers?.has(player.user_id)}
             />
           );
         })}

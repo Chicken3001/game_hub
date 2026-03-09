@@ -80,6 +80,7 @@ export interface PokerPlayerRow {
   is_big_blind: boolean;
   hand_description: string | null;
   show_cards: boolean;
+  last_seen_at: string;
   created_at: string;
   updated_at: string;
 }

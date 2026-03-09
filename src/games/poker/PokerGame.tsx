@@ -28,10 +28,7 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
   const [usernames, setUsernames] = useState<Record<string, string>>({});
   const [actionTimeLeft, setActionTimeLeft] = useState<number | null>(null);
   const [showdownTimeLeft, setShowdownTimeLeft] = useState<number | null>(null);
-  const [opponentGone, setOpponentGone] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
-
-  const DISCONNECT_TIMEOUT = 60;
+  const [tick, setTick] = useState(0);
 
   const isHost = game.host_id === currentUserId;
   const myPlayer = players.find(p => p.user_id === currentUserId);
@@ -64,62 +61,56 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
       });
   }, [players, supabase, usernames]);
 
-  // Cancel waiting game on unmount (host only)
+  // ── Heartbeat — update last_seen_at every 10s ───────────────────────────
   useEffect(() => {
-    if (initialGame.status !== 'waiting' || !isHost) return;
-    return () => {
-      supabase
-        .from('poker_games')
-        .update({ status: 'cancelled' })
-        .eq('id', roomId)
-        .eq('status', 'waiting')
-        .then(() => {});
-    };
+    if (!myPlayer || game.status === 'finished' || game.status === 'cancelled') return;
+    supabase.rpc('poker_heartbeat', { p_game_id: roomId });
+    const id = setInterval(() => {
+      supabase.rpc('poker_heartbeat', { p_game_id: roomId });
+    }, 10_000);
+    return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myPlayer?.user_id, game.status, roomId, supabase]);
+
+  // ── Tick — forces periodic re-evaluation of disconnect status ──────────
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 5_000);
+    return () => clearInterval(id);
   }, []);
 
-  // Presence — disconnect detection
-  useEffect(() => {
-    if (!myPlayer || game.status !== 'active') return;
-    const channel = supabase
-      .channel(`presence:poker:${roomId}`)
-      .on('presence', { event: 'leave' }, () => {
-        setOpponentGone(true);
-      })
-      .on('presence', { event: 'join' }, () => {
-        setOpponentGone(false);
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({ userId: currentUserId });
-        }
-      });
-    return () => { supabase.removeChannel(channel); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game.status, myPlayer?.user_id]);
-
-  // Countdown on disconnect
-  useEffect(() => {
-    if (!opponentGone) { setCountdown(null); return; }
-    setCountdown(DISCONNECT_TIMEOUT);
-    const id = setInterval(() => {
-      setCountdown(n => (n !== null && n > 1 ? n - 1 : 0));
-    }, 1000);
-    return () => clearInterval(id);
-  }, [opponentGone]);
-
-  useEffect(() => {
-    if (countdown !== 0) return;
-    void (async () => {
-      try {
-        await supabase.from('poker_games')
-          .update({ status: 'cancelled' })
-          .eq('id', roomId).eq('status', 'active');
-      } finally {
-        router.push('/games/poker');
+  // ── Disconnected players set — derived from last_seen_at ────────────────
+  const disconnectedPlayers = useMemo(() => {
+    if (game.status === 'finished' || game.status === 'cancelled') return new Set<string>();
+    const threshold = Date.now() - 30_000;
+    const set = new Set<string>();
+    for (const p of players) {
+      if (!p.is_eliminated && new Date(p.last_seen_at).getTime() < threshold) {
+        set.add(p.user_id);
       }
-    })();
-  }, [countdown, roomId, router, supabase]);
+    }
+    return set;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [players, game.status, tick]);
+
+  // ── Host transfer + elimination check — every 10s ─────────────────────
+  useEffect(() => {
+    if (!myPlayer || game.status === 'finished' || game.status === 'cancelled') return;
+    const check = () => {
+      const host = players.find(p => p.user_id === game.host_id);
+      if (host && new Date(host.last_seen_at).getTime() < Date.now() - 30_000) {
+        supabase.rpc('poker_transfer_host', { p_game_id: roomId });
+      }
+      const hasStale = players.some(p =>
+        !p.is_eliminated && new Date(p.last_seen_at).getTime() < Date.now() - 300_000
+      );
+      if (hasStale) {
+        supabase.rpc('poker_eliminate_disconnected', { p_game_id: roomId });
+      }
+    };
+    const id = setInterval(check, 10_000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myPlayer?.user_id, game.status, game.host_id, players, roomId, supabase]);
 
   // Realtime subscriptions
   useEffect(() => {
@@ -340,19 +331,16 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
     );
   }
 
-  // ── Disconnect warning ─────────────────────────────────────────────────────
-  const showDisconnect = opponentGone && !isFinished && !isShowdown && myPlayer && countdown !== null;
-
   // ── Tournament winner ──────────────────────────────────────────────────────
   const tournamentWinner = isFinished && game.winner_id;
 
   return (
     <div className="flex flex-col items-center gap-4 py-4">
-      {showDisconnect && (
+      {disconnectedPlayers.size > 0 && game.status === 'active' && (
         <div className="flex flex-col items-center gap-2 rounded-3xl border-2 border-amber-300 bg-amber-50 px-6 py-5 text-center shadow-md w-full max-w-sm">
-          <p className="text-lg font-black text-amber-800">⚠️ Player disconnected</p>
+          <p className="text-lg font-black text-amber-800">Player disconnected</p>
           <p className="text-sm font-semibold text-amber-600">
-            Returning to lobby in {countdown}s…
+            {Array.from(disconnectedPlayers).map(id => usernames[id] ?? 'Player').join(', ')} lost connection
           </p>
         </div>
       )}
@@ -435,6 +423,7 @@ export function PokerGame({ initialGame, initialPlayers, initialHoleCards, curre
         lastAction={game.last_action}
         usernames={usernames}
         actionTimeLeft={actionTimeLeft}
+        disconnectedPlayers={disconnectedPlayers}
       />
 
       {/* Player indicator */}
