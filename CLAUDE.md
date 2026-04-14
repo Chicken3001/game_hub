@@ -66,7 +66,8 @@ Native SwiftUI iPhone app that shares this project's Supabase backend. Currently
 ### Rules
 
 - Do NOT modify Xcode configuration (project.yml, .xcodeproj, signing, build settings) unless explicitly asked.
-- `project.yml` is the source of truth for all build settings. Never add settings directly to `.xcodeproj` — they are wiped on the next `xcodegen` run. Any new build setting must go in `project.yml`.
+- `project.yml` is the source of truth for most build settings. Never add settings directly to `.xcodeproj` — they are wiped on the next `xcodegen` run. Any new build setting must go in `project.yml`.
+- **Version + build number**: edit `ios/GameHub/Version.xcconfig` (not Xcode's General tab, not `project.yml`). This is the only way bumps survive `xcodegen`. Increment `CURRENT_PROJECT_VERSION` for every new upload to App Store Connect.
 
 ### Architecture
 

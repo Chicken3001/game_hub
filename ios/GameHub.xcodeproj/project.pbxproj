@@ -41,6 +41,7 @@
 		AF7CCB63137D85CF4F79B392 /* GameHubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHubApp.swift; sourceTree = "<group>"; };
 		D5BFA7E628E745E269FD7F34 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		E1FFDECBA2F2C1DFB992AADF /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		EF9ADAAEA21EF1F7ABA5000E /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 		FF878FDC837F2029B0466582 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -86,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				9BE3D3BB84BB4C705E8DF9A0 /* Assets.xcassets */,
+				EF9ADAAEA21EF1F7ABA5000E /* Version.xcconfig */,
 				1A7E60CFD95595BBCBB54FE6 /* App */,
 				7F54F30EDF7B03D44FFB80C0 /* Config */,
 				54A30DBC5F9BA560825EDCDC /* Models */,
@@ -383,12 +385,12 @@
 		};
 		D9940F90297327638BB04804 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = EF9ADAAEA21EF1F7ABA5000E /* Version.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = W43WMJZ7NN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleURLSchemes = gamehub;
@@ -403,7 +405,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sourcelogic.gamehub;
 				SDKROOT = iphoneos;
 				SWIFT_STRICT_CONCURRENCY = minimal;
@@ -414,12 +415,12 @@
 		};
 		E23C9F7C1ABBB06E237D858A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = EF9ADAAEA21EF1F7ABA5000E /* Version.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = W43WMJZ7NN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleURLSchemes = gamehub;
@@ -434,7 +435,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sourcelogic.gamehub;
 				SDKROOT = iphoneos;
 				SWIFT_STRICT_CONCURRENCY = minimal;
