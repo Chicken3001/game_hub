@@ -53,3 +53,26 @@ Each game lives in `src/games/<id>/` and exports its React component via an `ind
 ### UI Components
 
 Reusable primitives are in `src/components/ui/` (Button, Card, Input, Modal). The `Button` component has `variant` options including `"back"` for navigation buttons.
+
+## iOS App (`ios/`)
+
+Native SwiftUI iPhone app that shares this project's Supabase backend. Currently ships the Animal Match game only. Mirrors the `task_quest/ios` scaffolding conventions.
+
+### Commands
+
+- `cd ios && xcodegen` — Regenerate `GameHub.xcodeproj` from `project.yml`
+- `xcodebuild -project ios/GameHub.xcodeproj -scheme GameHub -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build` — Build for simulator
+
+### Rules
+
+- Do NOT modify Xcode configuration (project.yml, .xcodeproj, signing, build settings) unless explicitly asked.
+- `project.yml` is the source of truth for all build settings. Never add settings directly to `.xcodeproj` — they are wiped on the next `xcodegen` run. Any new build setting must go in `project.yml`.
+
+### Architecture
+
+SwiftUI + supabase-swift (SPM). iOS 18.0+, Swift 6.0. Light theme, kid-friendly palette.
+
+- **Auth**: Supabase Swift SDK with Keychain-backed token storage. `AuthService.shared` observes `authStateChanges`; `RootView` swaps between `LoginView` and `HubView` based on `isAuthenticated`.
+- **State**: `@Observable` view models (e.g. `AnimalMatchViewModel`).
+- **Folder layout**: `App/`, `Config/` (Config, Theme), `Services/` (SupabaseService, AuthService), `ViewModels/`, `Models/`, `Views/` (Auth, Hub, AnimalMatch), `Assets.xcassets/`.
+- **Supabase credentials**: Hardcoded in `Config.swift` (same URL + anon key as web `.env.local`).
