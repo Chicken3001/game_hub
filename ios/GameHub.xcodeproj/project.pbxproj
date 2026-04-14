@@ -15,14 +15,17 @@
 		3E504E33E17A230C646B673B /* HubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 173ECAB58CF8119DF51B308C /* HubView.swift */; };
 		498561571A6FEEDFE7BE9B42 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BFA7E628E745E269FD7F34 /* Config.swift */; };
 		8207F1D604DE7B0B8E7B876C /* AnimalMatchGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 129DDFF499BD60893C8AAEAA /* AnimalMatchGameView.swift */; };
+		9196F0B750CDB7407181A040 /* Bubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1E69EAA287614F11C1301D /* Bubble.swift */; };
 		9A4640562CEFBD6D606D3AF2 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF55AD09FE2C8893FD20E0F /* SupabaseService.swift */; };
 		AA49D8EB56760C8A4C13F0A8 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0419C60B1DFD94390D696249 /* AuthViewModel.swift */; };
 		C2D3B8F7CFCEB8B8D6ACFA66 /* Animal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E818D1281F8A8BE12CA3E7 /* Animal.swift */; };
 		CC88BC327415DE3EF5DB14FC /* WinCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F43B50A9985534DBE45C77 /* WinCelebrationView.swift */; };
 		D923BDF1909D7670A56845AB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BA57BBC10792C50D531486C /* Theme.swift */; };
 		DF066970D61D51E896A62AEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9BE3D3BB84BB4C705E8DF9A0 /* Assets.xcassets */; };
+		E38633E695F935C47E4E46CE /* BubblePopGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D3B6C9AA276D19F120CCB2 /* BubblePopGameView.swift */; };
 		E51AB72FC69148505F3BB36B /* GameHubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7CCB63137D85CF4F79B392 /* GameHubApp.swift */; };
 		F16DFAB93AEFC425DF2518AD /* CategorySelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DDDB244146AD7F0D5D0CA6 /* CategorySelectorView.swift */; };
+		F8667BA5497D5092046BA574 /* BubblePopViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB105830571BF6724B3ACBE /* BubblePopViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,10 +37,13 @@
 		25F43B50A9985534DBE45C77 /* WinCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinCelebrationView.swift; sourceTree = "<group>"; };
 		45DDDB244146AD7F0D5D0CA6 /* CategorySelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySelectorView.swift; sourceTree = "<group>"; };
 		4BA57BBC10792C50D531486C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		4E1E69EAA287614F11C1301D /* Bubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bubble.swift; sourceTree = "<group>"; };
 		666B0A46E8A10D034D96F4CF /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		6EF55AD09FE2C8893FD20E0F /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		76D3B6C9AA276D19F120CCB2 /* BubblePopGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubblePopGameView.swift; sourceTree = "<group>"; };
 		9BE3D3BB84BB4C705E8DF9A0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9D1A9FF125965496DB9F116A /* GameHub.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GameHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AAB105830571BF6724B3ACBE /* BubblePopViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubblePopViewModel.swift; sourceTree = "<group>"; };
 		AF7CCB63137D85CF4F79B392 /* GameHubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHubApp.swift; sourceTree = "<group>"; };
 		D5BFA7E628E745E269FD7F34 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		E1FFDECBA2F2C1DFB992AADF /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -102,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				14E818D1281F8A8BE12CA3E7 /* Animal.swift */,
+				4E1E69EAA287614F11C1301D /* Bubble.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -131,6 +138,14 @@
 			path = Config;
 			sourceTree = "<group>";
 		};
+		83905C1D00FE803866787BB9 /* BubblePop */ = {
+			isa = PBXGroup;
+			children = (
+				76D3B6C9AA276D19F120CCB2 /* BubblePopGameView.swift */,
+			);
+			path = BubblePop;
+			sourceTree = "<group>";
+		};
 		98CEE9846290B8A3E5B38AED /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -144,6 +159,7 @@
 			children = (
 				E7271E6D6C769F1F24F991BF /* AnimalMatch */,
 				7C592FB06E80912CB2FB801B /* Auth */,
+				83905C1D00FE803866787BB9 /* BubblePop */,
 				41D3F1E5E7EA57E907FD458C /* Hub */,
 			);
 			path = Views;
@@ -154,6 +170,7 @@
 			children = (
 				149254C6FB6B52D5B5F6E33C /* AnimalMatchViewModel.swift */,
 				0419C60B1DFD94390D696249 /* AuthViewModel.swift */,
+				AAB105830571BF6724B3ACBE /* BubblePopViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -249,6 +266,9 @@
 				104AC698D76E8B6ADDEEC008 /* AnimalMatchViewModel.swift in Sources */,
 				3668C34D490ACFFE8CC60B5D /* AuthService.swift in Sources */,
 				AA49D8EB56760C8A4C13F0A8 /* AuthViewModel.swift in Sources */,
+				9196F0B750CDB7407181A040 /* Bubble.swift in Sources */,
+				E38633E695F935C47E4E46CE /* BubblePopGameView.swift in Sources */,
+				F8667BA5497D5092046BA574 /* BubblePopViewModel.swift in Sources */,
 				F16DFAB93AEFC425DF2518AD /* CategorySelectorView.swift in Sources */,
 				498561571A6FEEDFE7BE9B42 /* Config.swift in Sources */,
 				E51AB72FC69148505F3BB36B /* GameHubApp.swift in Sources */,

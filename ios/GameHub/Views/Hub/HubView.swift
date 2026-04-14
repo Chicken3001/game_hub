@@ -1,24 +1,52 @@
 import SwiftUI
 
+private struct GameEntry: Identifiable {
+    let id: String
+    let title: String
+    let subtitle: String
+    let emoji: String
+    let gradient: [Color]
+}
+
 struct HubView: View {
+    private let games: [GameEntry] = [
+        GameEntry(
+            id: "animal-match",
+            title: "Animal Match",
+            subtitle: "Match animals across the grid",
+            emoji: "🐾",
+            gradient: [Color(hex: "#A78BFA"), Color(hex: "#818CF8")]
+        ),
+        GameEntry(
+            id: "bubble-pop",
+            title: "Bubble Pop",
+            subtitle: "Pop bubbles before time runs out",
+            emoji: "🫧",
+            gradient: [Color(hex: "#67E8F9"), Color(hex: "#60A5FA")]
+        ),
+    ]
+
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.hubBackground.ignoresSafeArea()
 
-                VStack(spacing: 20) {
-                    header
+                ScrollView {
+                    VStack(spacing: 16) {
+                        header
+                            .padding(.bottom, 4)
 
-                    NavigationLink {
-                        CategorySelectorView()
-                    } label: {
-                        GameCard()
+                        ForEach(games) { game in
+                            NavigationLink {
+                                destination(for: game.id)
+                            } label: {
+                                GameCard(entry: game)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
-                    .buttonStyle(.plain)
-
-                    Spacer()
+                    .padding(20)
                 }
-                .padding(20)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -29,6 +57,18 @@ struct HubView: View {
                     .foregroundStyle(Color.hubAccent)
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func destination(for id: String) -> some View {
+        switch id {
+        case "animal-match":
+            CategorySelectorView()
+        case "bubble-pop":
+            BubblePopGameView()
+        default:
+            EmptyView()
         }
     }
 
@@ -51,26 +91,28 @@ struct HubView: View {
 }
 
 private struct GameCard: View {
+    let entry: GameEntry
+
     var body: some View {
         HStack(spacing: 16) {
             ZStack {
                 RoundedRectangle(cornerRadius: 20)
                     .fill(
                         LinearGradient(
-                            colors: [Color(hex: "#A78BFA"), Color(hex: "#818CF8")],
+                            colors: entry.gradient,
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
                     .frame(width: 72, height: 72)
-                Text("🐾").font(.system(size: 40))
+                Text(entry.emoji).font(.system(size: 40))
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Animal Match")
+                Text(entry.title)
                     .font(.title2.bold())
                     .foregroundStyle(Color.hubInk)
-                Text("Match animals across the grid")
+                Text(entry.subtitle)
                     .font(.subheadline)
                     .foregroundStyle(Color.hubAccent)
             }
