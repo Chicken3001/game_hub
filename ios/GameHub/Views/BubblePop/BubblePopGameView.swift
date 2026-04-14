@@ -143,7 +143,7 @@ struct BubblePopGameView: View {
                             let elapsed = now.timeIntervalSince(bubble.spawnedAt)
                             let t = elapsed / bubble.duration
                             let travel = geo.size.height + bubble.size
-                            let y = -bubble.size / 2 + CGFloat(t) * travel
+                            let y = geo.size.height + bubble.size / 2 - CGFloat(t) * travel
                             let x = geo.size.width * bubble.leftFraction + bubble.size / 2
 
                             BubbleCircle(bubble: bubble)
