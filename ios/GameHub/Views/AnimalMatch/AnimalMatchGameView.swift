@@ -29,12 +29,12 @@ struct AnimalMatchGameView: View {
 
             VStack(spacing: 12) {
                 statsBar
-                if let sel = viewModel.selected {
-                    Text("✨ \(viewModel.animal(for: sel).name) selected — now tap its match!")
-                        .font(.subheadline.bold())
-                        .foregroundStyle(Color.hubAmber)
-                        .multilineTextAlignment(.center)
-                }
+
+                Text(viewModel.selected.map { "✨ \(viewModel.animal(for: $0).name) selected — now tap its match!" } ?? " ")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(viewModel.selected == nil ? Color.clear : Color.hubAmber)
+                    .multilineTextAlignment(.center)
+                    .frame(height: 20)
 
                 gameArea
 
@@ -135,13 +135,8 @@ struct AnimalMatchGameView: View {
             .onChanged { value in
                 if viewModel.isMatched(ref) { return }
 
-                if dragOrigin == nil {
-                    if let frame = cardFrames[ref] {
-                        dragOrigin = CGPoint(x: frame.midX, y: frame.midY)
-                    }
-                    if viewModel.selected != ref {
-                        viewModel.selected = ref
-                    }
+                if dragOrigin == nil, let frame = cardFrames[ref] {
+                    dragOrigin = CGPoint(x: frame.midX, y: frame.midY)
                 }
                 dragCurrent = value.location
             }
