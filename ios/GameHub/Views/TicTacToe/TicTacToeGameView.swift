@@ -107,8 +107,8 @@ struct TicTacToeGameView: View {
             .aspectRatio(1, contentMode: .fit)
             .opacity(viewModel.gameOver ? 0.85 : 1)
         }
-        .disabled(disabled)
         .buttonStyle(.plain)
+        .allowsHitTesting(!disabled)
     }
 
     @ViewBuilder

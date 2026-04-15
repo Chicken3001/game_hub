@@ -200,8 +200,8 @@ struct TicTacToeMultiplayerView: View {
             .aspectRatio(1, contentMode: .fit)
             .opacity(viewModel.isGameOver ? 0.85 : 1)
         }
-        .disabled(disabled)
         .buttonStyle(.plain)
+        .allowsHitTesting(!disabled)
     }
 
     @ViewBuilder
