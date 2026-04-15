@@ -38,6 +38,13 @@ struct HubView: View {
             emoji: "🔷",
             gradient: [Color(hex: "#A855F7"), Color(hex: "#6366F1")]
         ),
+        GameEntry(
+            id: "farm-match",
+            title: "Animal Memory Match",
+            subtitle: "Flip and find matching pairs",
+            emoji: "🧠",
+            gradient: [Color(hex: "#34D399"), Color(hex: "#2DD4BF")]
+        ),
     ]
 
     var body: some View {
@@ -85,6 +92,8 @@ struct HubView: View {
             TicTacToeLobbyView()
         case "shape-sorter":
             ShapeSorterView()
+        case "farm-match":
+            FarmMatchView()
         default:
             EmptyView()
         }
