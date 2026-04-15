@@ -24,6 +24,13 @@ struct HubView: View {
             emoji: "🫧",
             gradient: [Color(hex: "#67E8F9"), Color(hex: "#60A5FA")]
         ),
+        GameEntry(
+            id: "tic-tac-toe",
+            title: "Tic-Tac-Toe",
+            subtitle: "Play against the computer",
+            emoji: "❌",
+            gradient: [Color(hex: "#818CF8"), Color(hex: "#F472B6")]
+        ),
     ]
 
     var body: some View {
@@ -67,6 +74,8 @@ struct HubView: View {
             CategorySelectorView()
         case "bubble-pop":
             BubblePopGameView()
+        case "tic-tac-toe":
+            TicTacToeLobbyView()
         default:
             EmptyView()
         }
