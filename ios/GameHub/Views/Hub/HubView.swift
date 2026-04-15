@@ -31,6 +31,13 @@ struct HubView: View {
             emoji: "❌",
             gradient: [Color(hex: "#818CF8"), Color(hex: "#F472B6")]
         ),
+        GameEntry(
+            id: "shape-sorter",
+            title: "Shape Sorter",
+            subtitle: "Drag shapes into the right bin",
+            emoji: "🔷",
+            gradient: [Color(hex: "#A855F7"), Color(hex: "#6366F1")]
+        ),
     ]
 
     var body: some View {
@@ -76,6 +83,8 @@ struct HubView: View {
             BubblePopGameView()
         case "tic-tac-toe":
             TicTacToeLobbyView()
+        case "shape-sorter":
+            ShapeSorterView()
         default:
             EmptyView()
         }
