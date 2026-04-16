@@ -64,13 +64,16 @@ struct HubView: View {
                         header
                             .padding(.bottom, 4)
 
-                        ForEach(games) { game in
-                            NavigationLink {
-                                destination(for: game.id)
-                            } label: {
-                                GameCard(entry: game)
+                        let cols = Array(repeating: GridItem(.flexible(), spacing: 14), count: 2)
+                        LazyVGrid(columns: cols, spacing: 14) {
+                            ForEach(games) { game in
+                                NavigationLink {
+                                    destination(for: game.id)
+                                } label: {
+                                    GameTile(entry: game)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                     }
                     .padding(20)
@@ -126,13 +129,13 @@ struct HubView: View {
     }
 }
 
-private struct GameCard: View {
+private struct GameTile: View {
     let entry: GameEntry
 
     var body: some View {
-        HStack(spacing: 16) {
+        VStack(spacing: 10) {
             ZStack {
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 18)
                     .fill(
                         LinearGradient(
                             colors: entry.gradient,
@@ -140,25 +143,30 @@ private struct GameCard: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 72, height: 72)
-                Text(entry.emoji).font(.system(size: 40))
+                    .frame(height: 80)
+                Text(entry.emoji).font(.system(size: 44))
             }
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(entry.title)
-                    .font(.title2.bold())
-                    .foregroundStyle(Color.hubInk)
-                Text(entry.subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(Color.hubAccent)
-            }
+            Text(entry.title)
+                .font(.subheadline.bold())
+                .foregroundStyle(Color.hubInk)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
 
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.headline)
-                .foregroundStyle(Color.hubAccent.opacity(0.6))
+            Text(entry.subtitle)
+                .font(.caption)
+                .foregroundStyle(Color.hubAccent)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .frame(minHeight: 30, alignment: .top)
         }
-        .hubCard()
+        .padding(12)
+        .background(Color.hubCardBg)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.hubCardBorder, lineWidth: 2)
+        )
+        .shadow(color: Color.hubAccent.opacity(0.1), radius: 12, y: 4)
     }
 }
