@@ -347,6 +347,7 @@ export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChang
 
   const iWon = gameResult === humanPlayer;
   const activeBoard = pendingBoard ?? board;
+  const flipBoard = humanPlayer === 2;
 
   return (
     <div className="flex flex-col items-center gap-5 py-2">
@@ -366,24 +367,25 @@ export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChang
       {/* Board */}
       <div className="rounded-2xl bg-amber-900 p-2 shadow-xl w-full max-w-sm">
         <div className="grid grid-cols-8 gap-0.5">
-          {Array.from({ length: 64 }, (_, idx) => {
-            const [row, col] = rowCol(idx);
+          {Array.from({ length: 64 }, (_, visualIdx) => {
+            const boardIdx = flipBoard ? 63 - visualIdx : visualIdx;
+            const [row, col] = rowCol(boardIdx);
             const dark = (row + col) % 2 === 1;
-            const cell = activeBoard[idx];
-            const isSelected = selectedPiece === idx || mustContinueFrom === idx;
-            const isValidDest = validDestinations.has(idx);
-            const isForcedPiece = !isSelected && forcedPieces.has(idx);
+            const cell = activeBoard[boardIdx];
+            const isSelected = selectedPiece === boardIdx || mustContinueFrom === boardIdx;
+            const isValidDest = validDestinations.has(boardIdx);
+            const isForcedPiece = !isSelected && forcedPieces.has(boardIdx);
             const isHuman = isPlayerPiece(cell, humanPlayer);
             const cellOwner = cell === 0 ? null : (cell === 1 || cell === 3 ? 1 : 2);
             const king = isKing(cell);
 
             return (
               <div
-                key={idx}
-                onClick={() => handleCellClick(idx)}
+                key={visualIdx}
+                onClick={() => handleCellClick(boardIdx)}
                 className={`
                   aspect-square flex items-center justify-center relative
-                  ${!dark ? 'bg-amber-100' : isValidDest ? 'bg-amber-600 ring-2 ring-yellow-300 cursor-pointer' : lastMove?.from === idx ? 'bg-amber-700' : 'bg-amber-800'}
+                  ${!dark ? 'bg-amber-100' : isValidDest ? 'bg-amber-600 ring-2 ring-yellow-300 cursor-pointer' : lastMove?.from === boardIdx ? 'bg-amber-700' : 'bg-amber-800'}
                   ${dark && isHuman && !isComputerTurn && !mustContinueFrom ? 'cursor-pointer' : ''}
                 `}
               >
@@ -397,7 +399,7 @@ export function CheckersVsComputer({ difficulty, goFirst, forcedCapture, onChang
                     ${cellOwner === 1
                       ? 'bg-rose-500 border-2 border-rose-700 text-yellow-300'
                       : 'bg-slate-800 border-2 border-slate-600 text-yellow-300'}
-                    ${isSelected ? 'ring-4 ring-yellow-400' : isForcedPiece ? 'ring-4 ring-green-400' : lastMove?.to === idx ? 'ring-2 ring-white/80' : isValidDest ? 'ring-2 ring-yellow-300' : ''}
+                    ${isSelected ? 'ring-4 ring-yellow-400' : isForcedPiece ? 'ring-4 ring-green-400' : lastMove?.to === boardIdx ? 'ring-2 ring-white/80' : isValidDest ? 'ring-2 ring-yellow-300' : ''}
                   `}>
                     {king ? '♛' : ''}
                   </div>
