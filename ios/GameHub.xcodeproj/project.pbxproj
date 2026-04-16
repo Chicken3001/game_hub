@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0290ACFF4BF88A0251858669 /* Shape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 145AC20EFDC9113A8A3BB3C6 /* Shape.swift */; };
+		05C3104444EC6585CDB683ED /* Connect4Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2C1BD85247F59583849A230 /* Connect4Service.swift */; };
 		103498E36AC529041F091068 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A386C8400F2FB48B7FC92991 /* Supabase */; };
 		104AC698D76E8B6ADDEEC008 /* AnimalMatchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149254C6FB6B52D5B5F6E33C /* AnimalMatchViewModel.swift */; };
 		18F2E2F5716A4F892FAD1A2F /* FarmMatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99E64799DC903B47D84A95 /* FarmMatchView.swift */; };
@@ -21,22 +22,29 @@
 		3668C34D490ACFFE8CC60B5D /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 666B0A46E8A10D034D96F4CF /* AuthService.swift */; };
 		3E504E33E17A230C646B673B /* HubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 173ECAB58CF8119DF51B308C /* HubView.swift */; };
 		498561571A6FEEDFE7BE9B42 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BFA7E628E745E269FD7F34 /* Config.swift */; };
+		4A3F0CBAC0DDF8D41486931E /* Connect4LobbyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5824F390D78D69CBC1E21F /* Connect4LobbyViewModel.swift */; };
 		4D6028E57165554AC1107444 /* TicTacToeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40CEA4B6ECDA15F3FCF7B11F /* TicTacToeService.swift */; };
 		512EC7F1D57352EEB773186A /* ShapeSorterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DD527BCE738063BAB0A943 /* ShapeSorterView.swift */; };
 		59299BA21D0D704F49BE32CB /* TicTacToeGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E58A8115C9E9EDF9CEC9AFAB /* TicTacToeGameView.swift */; };
 		6ABCBD7CD1F638DC68C608DA /* CheckersLobbyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49A400D4A957C63881BB108 /* CheckersLobbyViewModel.swift */; };
+		6C4A64C47909AB78205F9B37 /* Connect4ComputerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 975B1E3267FF0C8DE60547F6 /* Connect4ComputerView.swift */; };
 		708194FD75AA0687078CB1F7 /* CheckersComputerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BBB28FD7AB780FAC46D921B /* CheckersComputerViewModel.swift */; };
+		741577629B93C068C1BB9CEA /* Connect4ComputerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A8E49938F1B21892833A02F /* Connect4ComputerViewModel.swift */; };
+		7CBE602A5975B47B84530F6B /* Connect4LobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95DC1A3E0A5776B142CA1CB /* Connect4LobbyView.swift */; };
 		8207F1D604DE7B0B8E7B876C /* AnimalMatchGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 129DDFF499BD60893C8AAEAA /* AnimalMatchGameView.swift */; };
+		867619FF51A935F8D1FE91BB /* Connect4MultiplayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839324AABB340C15F90E6815 /* Connect4MultiplayerView.swift */; };
 		915C8D99E9E68DA706D3CD2C /* TicTacToeLobbyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521EF3309A3D5674C582DD45 /* TicTacToeLobbyViewModel.swift */; };
 		9196F0B750CDB7407181A040 /* Bubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1E69EAA287614F11C1301D /* Bubble.swift */; };
 		98D6184753312E5FB46DA2F7 /* CheckersMultiplayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE07A32295F1B3F9E93F266 /* CheckersMultiplayerView.swift */; };
 		9A4640562CEFBD6D606D3AF2 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF55AD09FE2C8893FD20E0F /* SupabaseService.swift */; };
 		AA49D8EB56760C8A4C13F0A8 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0419C60B1DFD94390D696249 /* AuthViewModel.swift */; };
+		B6B868E3A6268DDF0FDF2B89 /* Connect4BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBF9541F6E5EF8839F4789FD /* Connect4BoardView.swift */; };
 		B83AEB38C83A84CD2F61834D /* TicTacToeMultiplayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565E1119C49041E58756F5A8 /* TicTacToeMultiplayerViewModel.swift */; };
 		BE61B1D197B48E9565993B26 /* CheckersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD46E91CA253800777EF3F62 /* CheckersService.swift */; };
 		C2D3B8F7CFCEB8B8D6ACFA66 /* Animal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E818D1281F8A8BE12CA3E7 /* Animal.swift */; };
 		CC88BC327415DE3EF5DB14FC /* WinCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F43B50A9985534DBE45C77 /* WinCelebrationView.swift */; };
 		D923BDF1909D7670A56845AB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BA57BBC10792C50D531486C /* Theme.swift */; };
+		DE5A62E00A3EB2E6752F6730 /* Connect4MultiplayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745368020E31552493A06E1F /* Connect4MultiplayerViewModel.swift */; };
 		DF066970D61D51E896A62AEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9BE3D3BB84BB4C705E8DF9A0 /* Assets.xcassets */; };
 		E2885C0ECAB5ED449D8E5281 /* FarmMatchCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB718305B568FAEE282AB0E7 /* FarmMatchCard.swift */; };
 		E38633E695F935C47E4E46CE /* BubblePopGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D3B6C9AA276D19F120CCB2 /* BubblePopGameView.swift */; };
@@ -48,6 +56,7 @@
 		F53A0C52D52FB1E1D7B382A4 /* FarmMatchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB7280976B493ED1EE62BE03 /* FarmMatchViewModel.swift */; };
 		F8667BA5497D5092046BA574 /* BubblePopViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB105830571BF6724B3ACBE /* BubblePopViewModel.swift */; };
 		F87E259153B561E84DE67657 /* TicTacToeMultiplayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B552928D96668E8F75838AA /* TicTacToeMultiplayerView.swift */; };
+		F9E255A88BC32D6CA1A19905 /* Connect4.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E27C8977778B67AECD35CD /* Connect4.swift */; };
 		FB3F277F2B239D96C1A4CA71 /* CheckersMultiplayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6712F9D062BA825550CD7814 /* CheckersMultiplayerViewModel.swift */; };
 /* End PBXBuildFile section */
 
@@ -60,9 +69,11 @@
 		14E818D1281F8A8BE12CA3E7 /* Animal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animal.swift; sourceTree = "<group>"; };
 		173ECAB58CF8119DF51B308C /* HubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubView.swift; sourceTree = "<group>"; };
 		25F43B50A9985534DBE45C77 /* WinCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinCelebrationView.swift; sourceTree = "<group>"; };
+		3F5824F390D78D69CBC1E21F /* Connect4LobbyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4LobbyViewModel.swift; sourceTree = "<group>"; };
 		40CEA4B6ECDA15F3FCF7B11F /* TicTacToeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeService.swift; sourceTree = "<group>"; };
 		45DDDB244146AD7F0D5D0CA6 /* CategorySelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySelectorView.swift; sourceTree = "<group>"; };
 		49DD527BCE738063BAB0A943 /* ShapeSorterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeSorterView.swift; sourceTree = "<group>"; };
+		4A8E49938F1B21892833A02F /* Connect4ComputerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4ComputerViewModel.swift; sourceTree = "<group>"; };
 		4BA57BBC10792C50D531486C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		4CE493ADEAEEFD0272439CB0 /* TicTacToeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeViewModel.swift; sourceTree = "<group>"; };
 		4E1E69EAA287614F11C1301D /* Bubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bubble.swift; sourceTree = "<group>"; };
@@ -72,16 +83,22 @@
 		666B0A46E8A10D034D96F4CF /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		6712F9D062BA825550CD7814 /* CheckersMultiplayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersMultiplayerViewModel.swift; sourceTree = "<group>"; };
 		6EF55AD09FE2C8893FD20E0F /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		745368020E31552493A06E1F /* Connect4MultiplayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4MultiplayerViewModel.swift; sourceTree = "<group>"; };
 		76D3B6C9AA276D19F120CCB2 /* BubblePopGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubblePopGameView.swift; sourceTree = "<group>"; };
 		775D4F31249F3835F4DC2EEB /* TicTacToe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToe.swift; sourceTree = "<group>"; };
 		7B552928D96668E8F75838AA /* TicTacToeMultiplayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeMultiplayerView.swift; sourceTree = "<group>"; };
+		839324AABB340C15F90E6815 /* Connect4MultiplayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4MultiplayerView.swift; sourceTree = "<group>"; };
 		8BBB28FD7AB780FAC46D921B /* CheckersComputerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersComputerViewModel.swift; sourceTree = "<group>"; };
 		9579FC2C9B861764BFD1770D /* CheckersComputerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersComputerView.swift; sourceTree = "<group>"; };
+		975B1E3267FF0C8DE60547F6 /* Connect4ComputerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4ComputerView.swift; sourceTree = "<group>"; };
 		9BE07A32295F1B3F9E93F266 /* CheckersMultiplayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersMultiplayerView.swift; sourceTree = "<group>"; };
 		9BE3D3BB84BB4C705E8DF9A0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9D1A9FF125965496DB9F116A /* GameHub.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GameHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAB105830571BF6724B3ACBE /* BubblePopViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubblePopViewModel.swift; sourceTree = "<group>"; };
 		AF7CCB63137D85CF4F79B392 /* GameHubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHubApp.swift; sourceTree = "<group>"; };
+		B4E27C8977778B67AECD35CD /* Connect4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4.swift; sourceTree = "<group>"; };
+		B95DC1A3E0A5776B142CA1CB /* Connect4LobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4LobbyView.swift; sourceTree = "<group>"; };
+		C2C1BD85247F59583849A230 /* Connect4Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4Service.swift; sourceTree = "<group>"; };
 		C3F579CB256FD6E898F856E5 /* ShapeSorterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeSorterViewModel.swift; sourceTree = "<group>"; };
 		CB718305B568FAEE282AB0E7 /* FarmMatchCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FarmMatchCard.swift; sourceTree = "<group>"; };
 		CC99E64799DC903B47D84A95 /* FarmMatchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FarmMatchView.swift; sourceTree = "<group>"; };
@@ -91,6 +108,7 @@
 		E1FFDECBA2F2C1DFB992AADF /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		E4304DEA1038DE01AB5A0CFD /* CheckersBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersBoardView.swift; sourceTree = "<group>"; };
 		E58A8115C9E9EDF9CEC9AFAB /* TicTacToeGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeGameView.swift; sourceTree = "<group>"; };
+		EBF9541F6E5EF8839F4789FD /* Connect4BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4BoardView.swift; sourceTree = "<group>"; };
 		EF9ADAAEA21EF1F7ABA5000E /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 		FB7280976B493ED1EE62BE03 /* FarmMatchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FarmMatchViewModel.swift; sourceTree = "<group>"; };
 		FF042E1B6DF89911FBDD509E /* TicTacToeLobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeLobbyView.swift; sourceTree = "<group>"; };
@@ -114,6 +132,7 @@
 			children = (
 				666B0A46E8A10D034D96F4CF /* AuthService.swift */,
 				DD46E91CA253800777EF3F62 /* CheckersService.swift */,
+				C2C1BD85247F59583849A230 /* Connect4Service.swift */,
 				6EF55AD09FE2C8893FD20E0F /* SupabaseService.swift */,
 				40CEA4B6ECDA15F3FCF7B11F /* TicTacToeService.swift */,
 			);
@@ -169,6 +188,7 @@
 				14E818D1281F8A8BE12CA3E7 /* Animal.swift */,
 				4E1E69EAA287614F11C1301D /* Bubble.swift */,
 				0BCFDEAE21376D89ABAF59A7 /* Checkers.swift */,
+				B4E27C8977778B67AECD35CD /* Connect4.swift */,
 				CB718305B568FAEE282AB0E7 /* FarmMatchCard.swift */,
 				145AC20EFDC9113A8A3BB3C6 /* Shape.swift */,
 				775D4F31249F3835F4DC2EEB /* TicTacToe.swift */,
@@ -182,6 +202,17 @@
 				CC99E64799DC903B47D84A95 /* FarmMatchView.swift */,
 			);
 			path = FarmMatch;
+			sourceTree = "<group>";
+		};
+		67D4533DF5AC77A48BC991E1 /* Connect4 */ = {
+			isa = PBXGroup;
+			children = (
+				EBF9541F6E5EF8839F4789FD /* Connect4BoardView.swift */,
+				975B1E3267FF0C8DE60547F6 /* Connect4ComputerView.swift */,
+				B95DC1A3E0A5776B142CA1CB /* Connect4LobbyView.swift */,
+				839324AABB340C15F90E6815 /* Connect4MultiplayerView.swift */,
+			);
+			path = Connect4;
 			sourceTree = "<group>";
 		};
 		7AF10A93E074A0EAE3618C95 = {
@@ -232,6 +263,7 @@
 				7C592FB06E80912CB2FB801B /* Auth */,
 				83905C1D00FE803866787BB9 /* BubblePop */,
 				4FA05AFF25940BD5C1D1FDDD /* Checkers */,
+				67D4533DF5AC77A48BC991E1 /* Connect4 */,
 				66C985F3295FFFC3C577628F /* FarmMatch */,
 				41D3F1E5E7EA57E907FD458C /* Hub */,
 				F8A9426F8AF9D725873CE468 /* ShapeSorter */,
@@ -249,6 +281,9 @@
 				8BBB28FD7AB780FAC46D921B /* CheckersComputerViewModel.swift */,
 				D49A400D4A957C63881BB108 /* CheckersLobbyViewModel.swift */,
 				6712F9D062BA825550CD7814 /* CheckersMultiplayerViewModel.swift */,
+				4A8E49938F1B21892833A02F /* Connect4ComputerViewModel.swift */,
+				3F5824F390D78D69CBC1E21F /* Connect4LobbyViewModel.swift */,
+				745368020E31552493A06E1F /* Connect4MultiplayerViewModel.swift */,
 				FB7280976B493ED1EE62BE03 /* FarmMatchViewModel.swift */,
 				C3F579CB256FD6E898F856E5 /* ShapeSorterViewModel.swift */,
 				521EF3309A3D5674C582DD45 /* TicTacToeLobbyViewModel.swift */,
@@ -381,6 +416,15 @@
 				FB3F277F2B239D96C1A4CA71 /* CheckersMultiplayerViewModel.swift in Sources */,
 				BE61B1D197B48E9565993B26 /* CheckersService.swift in Sources */,
 				498561571A6FEEDFE7BE9B42 /* Config.swift in Sources */,
+				F9E255A88BC32D6CA1A19905 /* Connect4.swift in Sources */,
+				B6B868E3A6268DDF0FDF2B89 /* Connect4BoardView.swift in Sources */,
+				6C4A64C47909AB78205F9B37 /* Connect4ComputerView.swift in Sources */,
+				741577629B93C068C1BB9CEA /* Connect4ComputerViewModel.swift in Sources */,
+				7CBE602A5975B47B84530F6B /* Connect4LobbyView.swift in Sources */,
+				4A3F0CBAC0DDF8D41486931E /* Connect4LobbyViewModel.swift in Sources */,
+				867619FF51A935F8D1FE91BB /* Connect4MultiplayerView.swift in Sources */,
+				DE5A62E00A3EB2E6752F6730 /* Connect4MultiplayerViewModel.swift in Sources */,
+				05C3104444EC6585CDB683ED /* Connect4Service.swift in Sources */,
 				E2885C0ECAB5ED449D8E5281 /* FarmMatchCard.swift in Sources */,
 				18F2E2F5716A4F892FAD1A2F /* FarmMatchView.swift in Sources */,
 				F53A0C52D52FB1E1D7B382A4 /* FarmMatchViewModel.swift in Sources */,

@@ -52,6 +52,13 @@ struct HubView: View {
             emoji: "🔴",
             gradient: [Color(hex: "#F43F5E"), Color(hex: "#B91C1C")]
         ),
+        GameEntry(
+            id: "connect4",
+            title: "Connect 4",
+            subtitle: "Line up four in a row",
+            emoji: "🟡",
+            gradient: [Color(hex: "#2563EB"), Color(hex: "#FACC15")]
+        ),
     ]
 
     var body: some View {
@@ -106,6 +113,8 @@ struct HubView: View {
             FarmMatchView()
         case "checkers":
             CheckersLobbyView()
+        case "connect4":
+            Connect4LobbyView()
         default:
             EmptyView()
         }
