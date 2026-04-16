@@ -45,6 +45,13 @@ struct HubView: View {
             emoji: "🧠",
             gradient: [Color(hex: "#34D399"), Color(hex: "#2DD4BF")]
         ),
+        GameEntry(
+            id: "checkers",
+            title: "Checkers",
+            subtitle: "Classic red vs black",
+            emoji: "🔴",
+            gradient: [Color(hex: "#F43F5E"), Color(hex: "#B91C1C")]
+        ),
     ]
 
     var body: some View {
@@ -94,6 +101,8 @@ struct HubView: View {
             ShapeSorterView()
         case "farm-match":
             FarmMatchView()
+        case "checkers":
+            CheckersLobbyView()
         default:
             EmptyView()
         }
