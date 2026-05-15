@@ -72,3 +72,48 @@ After creating a user in Supabase, they log in at `/login`. On first visit, they
 - `supabase/migrations/` – SQL for `profiles` table and RLS
 
 See `PLAN.md` for the full design and roadmap.
+
+## Adding new tables (post Oct 30, 2026)
+
+Starting **Oct 30, 2026**, Supabase no longer auto-grants Data API access to new tables in the `public` schema. Any new table must include explicit `GRANT` statements or `supabase-js` will get a `42501` error.
+
+Use this template for every new migration that creates a table:
+
+```sql
+create table public.your_table (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  -- ... your columns ...
+  created_at timestamptz not null default now()
+);
+
+-- Required: grant Data API access per role
+grant select
+  on public.your_table
+  to anon;
+
+grant select, insert, update, delete
+  on public.your_table
+  to authenticated;
+
+grant select, insert, update, delete
+  on public.your_table
+  to service_role;
+
+-- Enable RLS
+alter table public.your_table
+  enable row level security;
+
+-- Add policies (example: users can only see their own rows)
+create policy "users can read their own rows"
+  on public.your_table
+  for select to authenticated
+  using (auth.uid() = user_id);
+
+create policy "users can insert their own rows"
+  on public.your_table
+  for insert to authenticated
+  with check (auth.uid() = user_id);
+```
+
+Adjust the `anon` grants if the table should be readable without login (most game tables here require auth, so `anon` typically gets nothing or just `select`).
