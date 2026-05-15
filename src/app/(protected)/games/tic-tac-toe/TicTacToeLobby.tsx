@@ -128,6 +128,13 @@ export function TicTacToeLobby({ userId }: Props) {
         🤖 Play vs Computer
       </button>
 
+      <button
+        onClick={() => router.push('/games/tic-tac-toe/local')}
+        className="w-full rounded-2xl border-2 border-slate-300 bg-white px-6 py-3 font-black text-slate-700 shadow transition hover:bg-slate-50 active:scale-95"
+      >
+        👫 Pass & Play (Local)
+      </button>
+
       <div className="flex flex-col gap-2">
         <h2 className="text-lg font-black text-slate-700">Open Lobbies</h2>
         {loading && (

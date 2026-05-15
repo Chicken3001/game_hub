@@ -27,6 +27,24 @@ struct TicTacToeLobbyView: View {
                     }
                     .buttonStyle(.plain)
 
+                    NavigationLink {
+                        TicTacToeLocalView()
+                    } label: {
+                        HStack {
+                            Text("👫 Pass & Play (Local)")
+                                .font(.headline)
+                                .foregroundStyle(Color.hubInk)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(Color.hubAccent.opacity(0.6))
+                        }
+                        .padding(.horizontal, 18).padding(.vertical, 14)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.hubCardBorder, lineWidth: 1.5))
+                    }
+                    .buttonStyle(.plain)
+
                     Text("Open Lobbies")
                         .font(.headline)
                         .foregroundStyle(Color.hubInk)
