@@ -29,11 +29,13 @@
 		512EC7F1D57352EEB773186A /* ShapeSorterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DD527BCE738063BAB0A943 /* ShapeSorterView.swift */; };
 		59299BA21D0D704F49BE32CB /* TicTacToeGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E58A8115C9E9EDF9CEC9AFAB /* TicTacToeGameView.swift */; };
 		661D5AE5087F4DC6CB0B59E3 /* TicTacToeLocalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3036E57986C5250A77D9B33F /* TicTacToeLocalViewModel.swift */; };
+		68629954F3D867892275341E /* Connect4LocalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5403F03EFB6F8FEE8464673E /* Connect4LocalView.swift */; };
 		6ABCBD7CD1F638DC68C608DA /* CheckersLobbyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49A400D4A957C63881BB108 /* CheckersLobbyViewModel.swift */; };
 		6C4A64C47909AB78205F9B37 /* Connect4ComputerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 975B1E3267FF0C8DE60547F6 /* Connect4ComputerView.swift */; };
 		708194FD75AA0687078CB1F7 /* CheckersComputerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BBB28FD7AB780FAC46D921B /* CheckersComputerViewModel.swift */; };
 		741577629B93C068C1BB9CEA /* Connect4ComputerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A8E49938F1B21892833A02F /* Connect4ComputerViewModel.swift */; };
 		7CBE602A5975B47B84530F6B /* Connect4LobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95DC1A3E0A5776B142CA1CB /* Connect4LobbyView.swift */; };
+		7FDF2C09BA545BABC1C7DA3A /* Connect4LocalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B5B08A9411F16D46DA28EE /* Connect4LocalViewModel.swift */; };
 		8207F1D604DE7B0B8E7B876C /* AnimalMatchGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 129DDFF499BD60893C8AAEAA /* AnimalMatchGameView.swift */; };
 		867619FF51A935F8D1FE91BB /* Connect4MultiplayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839324AABB340C15F90E6815 /* Connect4MultiplayerView.swift */; };
 		915C8D99E9E68DA706D3CD2C /* TicTacToeLobbyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521EF3309A3D5674C582DD45 /* TicTacToeLobbyViewModel.swift */; };
@@ -84,6 +86,7 @@
 		4CE493ADEAEEFD0272439CB0 /* TicTacToeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeViewModel.swift; sourceTree = "<group>"; };
 		4E1E69EAA287614F11C1301D /* Bubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bubble.swift; sourceTree = "<group>"; };
 		521EF3309A3D5674C582DD45 /* TicTacToeLobbyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeLobbyViewModel.swift; sourceTree = "<group>"; };
+		5403F03EFB6F8FEE8464673E /* Connect4LocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4LocalView.swift; sourceTree = "<group>"; };
 		565E1119C49041E58756F5A8 /* TicTacToeMultiplayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeMultiplayerViewModel.swift; sourceTree = "<group>"; };
 		5F860CFDE34376E325B83B01 /* TicTacToeLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeLocalView.swift; sourceTree = "<group>"; };
 		61F9FE6894349EC9F8EF3D60 /* CheckersLobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersLobbyView.swift; sourceTree = "<group>"; };
@@ -97,6 +100,7 @@
 		839324AABB340C15F90E6815 /* Connect4MultiplayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4MultiplayerView.swift; sourceTree = "<group>"; };
 		8BBB28FD7AB780FAC46D921B /* CheckersComputerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersComputerViewModel.swift; sourceTree = "<group>"; };
 		9579FC2C9B861764BFD1770D /* CheckersComputerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersComputerView.swift; sourceTree = "<group>"; };
+		95B5B08A9411F16D46DA28EE /* Connect4LocalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4LocalViewModel.swift; sourceTree = "<group>"; };
 		972003B35F04929545BFF153 /* FindAnimalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindAnimalView.swift; sourceTree = "<group>"; };
 		975B1E3267FF0C8DE60547F6 /* Connect4ComputerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4ComputerView.swift; sourceTree = "<group>"; };
 		9BE07A32295F1B3F9E93F266 /* CheckersMultiplayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersMultiplayerView.swift; sourceTree = "<group>"; };
@@ -218,6 +222,7 @@
 				EBF9541F6E5EF8839F4789FD /* Connect4BoardView.swift */,
 				975B1E3267FF0C8DE60547F6 /* Connect4ComputerView.swift */,
 				B95DC1A3E0A5776B142CA1CB /* Connect4LobbyView.swift */,
+				5403F03EFB6F8FEE8464673E /* Connect4LocalView.swift */,
 				839324AABB340C15F90E6815 /* Connect4MultiplayerView.swift */,
 			);
 			path = Connect4;
@@ -300,6 +305,7 @@
 				6712F9D062BA825550CD7814 /* CheckersMultiplayerViewModel.swift */,
 				4A8E49938F1B21892833A02F /* Connect4ComputerViewModel.swift */,
 				3F5824F390D78D69CBC1E21F /* Connect4LobbyViewModel.swift */,
+				95B5B08A9411F16D46DA28EE /* Connect4LocalViewModel.swift */,
 				745368020E31552493A06E1F /* Connect4MultiplayerViewModel.swift */,
 				FB7280976B493ED1EE62BE03 /* FarmMatchViewModel.swift */,
 				4BA90B2C1602A2163392DE27 /* FindAnimalViewModel.swift */,
@@ -442,6 +448,8 @@
 				741577629B93C068C1BB9CEA /* Connect4ComputerViewModel.swift in Sources */,
 				7CBE602A5975B47B84530F6B /* Connect4LobbyView.swift in Sources */,
 				4A3F0CBAC0DDF8D41486931E /* Connect4LobbyViewModel.swift in Sources */,
+				68629954F3D867892275341E /* Connect4LocalView.swift in Sources */,
+				7FDF2C09BA545BABC1C7DA3A /* Connect4LocalViewModel.swift in Sources */,
 				867619FF51A935F8D1FE91BB /* Connect4MultiplayerView.swift in Sources */,
 				DE5A62E00A3EB2E6752F6730 /* Connect4MultiplayerViewModel.swift in Sources */,
 				05C3104444EC6585CDB683ED /* Connect4Service.swift in Sources */,
