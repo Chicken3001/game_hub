@@ -14,6 +14,7 @@
 		103498E36AC529041F091068 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A386C8400F2FB48B7FC92991 /* Supabase */; };
 		104AC698D76E8B6ADDEEC008 /* AnimalMatchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 149254C6FB6B52D5B5F6E33C /* AnimalMatchViewModel.swift */; };
 		18F2E2F5716A4F892FAD1A2F /* FarmMatchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99E64799DC903B47D84A95 /* FarmMatchView.swift */; };
+		19BCA88B305FEE3C9D4061ED /* CopyPatternView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F174B97B6F66031E751FB71 /* CopyPatternView.swift */; };
 		1A047714564865EAFB53701D /* CheckersBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4304DEA1038DE01AB5A0CFD /* CheckersBoardView.swift */; };
 		1C1172357D3943E27CE25B57 /* TicTacToeLobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF042E1B6DF89911FBDD509E /* TicTacToeLobbyView.swift */; };
 		2106E4FE5E8E0C7768B63224 /* Checkers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BCFDEAE21376D89ABAF59A7 /* Checkers.swift */; };
@@ -21,6 +22,7 @@
 		2B932206016FE586993F2157 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FFDECBA2F2C1DFB992AADF /* LoginView.swift */; };
 		324DBBD422A15ABF37299177 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF878FDC837F2029B0466582 /* RootView.swift */; };
 		347AE535831517C53FA5E326 /* CheckersComputerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9579FC2C9B861764BFD1770D /* CheckersComputerView.swift */; };
+		35A30B2917D60A3599E59E06 /* ToneSynth.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBB1AE8F36201BDB84529FC5 /* ToneSynth.swift */; };
 		3668C34D490ACFFE8CC60B5D /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 666B0A46E8A10D034D96F4CF /* AuthService.swift */; };
 		3E504E33E17A230C646B673B /* HubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 173ECAB58CF8119DF51B308C /* HubView.swift */; };
 		476C80AF8366912D8D365571 /* FindAnimalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 972003B35F04929545BFF153 /* FindAnimalView.swift */; };
@@ -40,17 +42,21 @@
 		7FDF2C09BA545BABC1C7DA3A /* Connect4LocalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B5B08A9411F16D46DA28EE /* Connect4LocalViewModel.swift */; };
 		8207F1D604DE7B0B8E7B876C /* AnimalMatchGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 129DDFF499BD60893C8AAEAA /* AnimalMatchGameView.swift */; };
 		867619FF51A935F8D1FE91BB /* Connect4MultiplayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839324AABB340C15F90E6815 /* Connect4MultiplayerView.swift */; };
+		90BBA2C9F2B83C1178E7BCF4 /* TowerOfHanoiViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B85FDC02753AF442A78275B1 /* TowerOfHanoiViewModel.swift */; };
 		915C8D99E9E68DA706D3CD2C /* TicTacToeLobbyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 521EF3309A3D5674C582DD45 /* TicTacToeLobbyViewModel.swift */; };
 		9196F0B750CDB7407181A040 /* Bubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1E69EAA287614F11C1301D /* Bubble.swift */; };
 		98D6184753312E5FB46DA2F7 /* CheckersMultiplayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE07A32295F1B3F9E93F266 /* CheckersMultiplayerView.swift */; };
 		9A4640562CEFBD6D606D3AF2 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF55AD09FE2C8893FD20E0F /* SupabaseService.swift */; };
 		AA49D8EB56760C8A4C13F0A8 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0419C60B1DFD94390D696249 /* AuthViewModel.swift */; };
+		AF3585C7C3EFF8D48E194F77 /* TowerOfHanoi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828F54FEA40B174A6C310D52 /* TowerOfHanoi.swift */; };
 		B6B868E3A6268DDF0FDF2B89 /* Connect4BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBF9541F6E5EF8839F4789FD /* Connect4BoardView.swift */; };
 		B83AEB38C83A84CD2F61834D /* TicTacToeMultiplayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565E1119C49041E58756F5A8 /* TicTacToeMultiplayerViewModel.swift */; };
+		B8A29CB88793A0615E763EC7 /* CopyPatternViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD09DECD70F4ABA32E2086A1 /* CopyPatternViewModel.swift */; };
 		BE61B1D197B48E9565993B26 /* CheckersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD46E91CA253800777EF3F62 /* CheckersService.swift */; };
 		C2D3B8F7CFCEB8B8D6ACFA66 /* Animal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E818D1281F8A8BE12CA3E7 /* Animal.swift */; };
 		CA2429AAD231E1C5DE10CD20 /* FindAnimalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BA90B2C1602A2163392DE27 /* FindAnimalViewModel.swift */; };
 		CC88BC327415DE3EF5DB14FC /* WinCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F43B50A9985534DBE45C77 /* WinCelebrationView.swift */; };
+		D37FA399C7ECFAC7F0DE643D /* TowerOfHanoiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F974A94BBEF4D099BDD1A2 /* TowerOfHanoiView.swift */; };
 		D923BDF1909D7670A56845AB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BA57BBC10792C50D531486C /* Theme.swift */; };
 		DE5A62E00A3EB2E6752F6730 /* Connect4MultiplayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745368020E31552493A06E1F /* Connect4MultiplayerViewModel.swift */; };
 		DF066970D61D51E896A62AEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9BE3D3BB84BB4C705E8DF9A0 /* Assets.xcassets */; };
@@ -66,6 +72,7 @@
 		F87E259153B561E84DE67657 /* TicTacToeMultiplayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B552928D96668E8F75838AA /* TicTacToeMultiplayerView.swift */; };
 		F9E255A88BC32D6CA1A19905 /* Connect4.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E27C8977778B67AECD35CD /* Connect4.swift */; };
 		FB3F277F2B239D96C1A4CA71 /* CheckersMultiplayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6712F9D062BA825550CD7814 /* CheckersMultiplayerViewModel.swift */; };
+		FC267D139125FCBC8C5D1CC4 /* CopyPattern.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF76F019CE504894D05F17B0 /* CopyPattern.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -76,6 +83,7 @@
 		149254C6FB6B52D5B5F6E33C /* AnimalMatchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalMatchViewModel.swift; sourceTree = "<group>"; };
 		14E818D1281F8A8BE12CA3E7 /* Animal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animal.swift; sourceTree = "<group>"; };
 		173ECAB58CF8119DF51B308C /* HubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HubView.swift; sourceTree = "<group>"; };
+		1F174B97B6F66031E751FB71 /* CopyPatternView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyPatternView.swift; sourceTree = "<group>"; };
 		21F208D5D36ECDBFC7BD36F6 /* CheckersLocalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersLocalViewModel.swift; sourceTree = "<group>"; };
 		25F43B50A9985534DBE45C77 /* WinCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinCelebrationView.swift; sourceTree = "<group>"; };
 		3036E57986C5250A77D9B33F /* TicTacToeLocalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeLocalViewModel.swift; sourceTree = "<group>"; };
@@ -99,7 +107,9 @@
 		745368020E31552493A06E1F /* Connect4MultiplayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4MultiplayerViewModel.swift; sourceTree = "<group>"; };
 		76D3B6C9AA276D19F120CCB2 /* BubblePopGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubblePopGameView.swift; sourceTree = "<group>"; };
 		775D4F31249F3835F4DC2EEB /* TicTacToe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToe.swift; sourceTree = "<group>"; };
+		77F974A94BBEF4D099BDD1A2 /* TowerOfHanoiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TowerOfHanoiView.swift; sourceTree = "<group>"; };
 		7B552928D96668E8F75838AA /* TicTacToeMultiplayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeMultiplayerView.swift; sourceTree = "<group>"; };
+		828F54FEA40B174A6C310D52 /* TowerOfHanoi.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TowerOfHanoi.swift; sourceTree = "<group>"; };
 		839324AABB340C15F90E6815 /* Connect4MultiplayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4MultiplayerView.swift; sourceTree = "<group>"; };
 		8BBB28FD7AB780FAC46D921B /* CheckersComputerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersComputerViewModel.swift; sourceTree = "<group>"; };
 		8CA23293BDFAE0297F3255AB /* CheckersLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersLocalView.swift; sourceTree = "<group>"; };
@@ -111,8 +121,10 @@
 		9BE3D3BB84BB4C705E8DF9A0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9D1A9FF125965496DB9F116A /* GameHub.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = GameHub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAB105830571BF6724B3ACBE /* BubblePopViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubblePopViewModel.swift; sourceTree = "<group>"; };
+		AD09DECD70F4ABA32E2086A1 /* CopyPatternViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyPatternViewModel.swift; sourceTree = "<group>"; };
 		AF7CCB63137D85CF4F79B392 /* GameHubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHubApp.swift; sourceTree = "<group>"; };
 		B4E27C8977778B67AECD35CD /* Connect4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4.swift; sourceTree = "<group>"; };
+		B85FDC02753AF442A78275B1 /* TowerOfHanoiViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TowerOfHanoiViewModel.swift; sourceTree = "<group>"; };
 		B95DC1A3E0A5776B142CA1CB /* Connect4LobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4LobbyView.swift; sourceTree = "<group>"; };
 		C2C1BD85247F59583849A230 /* Connect4Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4Service.swift; sourceTree = "<group>"; };
 		C3F579CB256FD6E898F856E5 /* ShapeSorterViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeSorterViewModel.swift; sourceTree = "<group>"; };
@@ -127,7 +139,9 @@
 		EBF9541F6E5EF8839F4789FD /* Connect4BoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4BoardView.swift; sourceTree = "<group>"; };
 		EF9ADAAEA21EF1F7ABA5000E /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 		FB7280976B493ED1EE62BE03 /* FarmMatchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FarmMatchViewModel.swift; sourceTree = "<group>"; };
+		FBB1AE8F36201BDB84529FC5 /* ToneSynth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToneSynth.swift; sourceTree = "<group>"; };
 		FF042E1B6DF89911FBDD509E /* TicTacToeLobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeLobbyView.swift; sourceTree = "<group>"; };
+		FF76F019CE504894D05F17B0 /* CopyPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyPattern.swift; sourceTree = "<group>"; };
 		FF878FDC837F2029B0466582 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -151,6 +165,7 @@
 				C2C1BD85247F59583849A230 /* Connect4Service.swift */,
 				6EF55AD09FE2C8893FD20E0F /* SupabaseService.swift */,
 				40CEA4B6ECDA15F3FCF7B11F /* TicTacToeService.swift */,
+				FBB1AE8F36201BDB84529FC5 /* ToneSynth.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -170,6 +185,14 @@
 				173ECAB58CF8119DF51B308C /* HubView.swift */,
 			);
 			path = Hub;
+			sourceTree = "<group>";
+		};
+		4DD14EE61BA851333B8C636F /* CopyPattern */ = {
+			isa = PBXGroup;
+			children = (
+				1F174B97B6F66031E751FB71 /* CopyPatternView.swift */,
+			);
+			path = CopyPattern;
 			sourceTree = "<group>";
 		};
 		4FA05AFF25940BD5C1D1FDDD /* Checkers */ = {
@@ -206,9 +229,11 @@
 				4E1E69EAA287614F11C1301D /* Bubble.swift */,
 				0BCFDEAE21376D89ABAF59A7 /* Checkers.swift */,
 				B4E27C8977778B67AECD35CD /* Connect4.swift */,
+				FF76F019CE504894D05F17B0 /* CopyPattern.swift */,
 				CB718305B568FAEE282AB0E7 /* FarmMatchCard.swift */,
 				145AC20EFDC9113A8A3BB3C6 /* Shape.swift */,
 				775D4F31249F3835F4DC2EEB /* TicTacToe.swift */,
+				828F54FEA40B174A6C310D52 /* TowerOfHanoi.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -274,6 +299,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		A24ED98262CB16BCDEF3DE1E /* TowerOfHanoi */ = {
+			isa = PBXGroup;
+			children = (
+				77F974A94BBEF4D099BDD1A2 /* TowerOfHanoiView.swift */,
+			);
+			path = TowerOfHanoi;
+			sourceTree = "<group>";
+		};
 		BA2465356B39B954F00C200B /* FindAnimal */ = {
 			isa = PBXGroup;
 			children = (
@@ -290,11 +323,13 @@
 				83905C1D00FE803866787BB9 /* BubblePop */,
 				4FA05AFF25940BD5C1D1FDDD /* Checkers */,
 				67D4533DF5AC77A48BC991E1 /* Connect4 */,
+				4DD14EE61BA851333B8C636F /* CopyPattern */,
 				66C985F3295FFFC3C577628F /* FarmMatch */,
 				BA2465356B39B954F00C200B /* FindAnimal */,
 				41D3F1E5E7EA57E907FD458C /* Hub */,
 				F8A9426F8AF9D725873CE468 /* ShapeSorter */,
 				F79CBAFF99EF7B4ADB7221AC /* TicTacToe */,
+				A24ED98262CB16BCDEF3DE1E /* TowerOfHanoi */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -313,6 +348,7 @@
 				3F5824F390D78D69CBC1E21F /* Connect4LobbyViewModel.swift */,
 				95B5B08A9411F16D46DA28EE /* Connect4LocalViewModel.swift */,
 				745368020E31552493A06E1F /* Connect4MultiplayerViewModel.swift */,
+				AD09DECD70F4ABA32E2086A1 /* CopyPatternViewModel.swift */,
 				FB7280976B493ED1EE62BE03 /* FarmMatchViewModel.swift */,
 				4BA90B2C1602A2163392DE27 /* FindAnimalViewModel.swift */,
 				C3F579CB256FD6E898F856E5 /* ShapeSorterViewModel.swift */,
@@ -320,6 +356,7 @@
 				3036E57986C5250A77D9B33F /* TicTacToeLocalViewModel.swift */,
 				565E1119C49041E58756F5A8 /* TicTacToeMultiplayerViewModel.swift */,
 				4CE493ADEAEEFD0272439CB0 /* TicTacToeViewModel.swift */,
+				B85FDC02753AF442A78275B1 /* TowerOfHanoiViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -461,6 +498,9 @@
 				867619FF51A935F8D1FE91BB /* Connect4MultiplayerView.swift in Sources */,
 				DE5A62E00A3EB2E6752F6730 /* Connect4MultiplayerViewModel.swift in Sources */,
 				05C3104444EC6585CDB683ED /* Connect4Service.swift in Sources */,
+				FC267D139125FCBC8C5D1CC4 /* CopyPattern.swift in Sources */,
+				19BCA88B305FEE3C9D4061ED /* CopyPatternView.swift in Sources */,
+				B8A29CB88793A0615E763EC7 /* CopyPatternViewModel.swift in Sources */,
 				E2885C0ECAB5ED449D8E5281 /* FarmMatchCard.swift in Sources */,
 				18F2E2F5716A4F892FAD1A2F /* FarmMatchView.swift in Sources */,
 				F53A0C52D52FB1E1D7B382A4 /* FarmMatchViewModel.swift in Sources */,
@@ -485,6 +525,10 @@
 				B83AEB38C83A84CD2F61834D /* TicTacToeMultiplayerViewModel.swift in Sources */,
 				4D6028E57165554AC1107444 /* TicTacToeService.swift in Sources */,
 				23896DDF1A5959C226F196FD /* TicTacToeViewModel.swift in Sources */,
+				35A30B2917D60A3599E59E06 /* ToneSynth.swift in Sources */,
+				AF3585C7C3EFF8D48E194F77 /* TowerOfHanoi.swift in Sources */,
+				D37FA399C7ECFAC7F0DE643D /* TowerOfHanoiView.swift in Sources */,
+				90BBA2C9F2B83C1178E7BCF4 /* TowerOfHanoiViewModel.swift in Sources */,
 				CC88BC327415DE3EF5DB14FC /* WinCelebrationView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

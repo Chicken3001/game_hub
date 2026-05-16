@@ -1,0 +1,1 @@
+export { CopyPatternGame } from "./CopyPatternGame";

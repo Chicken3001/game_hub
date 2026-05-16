@@ -51,6 +51,20 @@ export const GAMES: GameEntry[] = [
     icon: "🔷",
   },
   {
+    id: "copy-pattern",
+    name: "Copy the Pattern",
+    description: "Watch which animals light up — can you tap them in the same order?",
+    path: "/games/copy-pattern",
+    icon: "🎵",
+  },
+  {
+    id: "tower-of-hanoi",
+    name: "Tower of Hanoi",
+    description: "Move all the rings to the right peg — but never put a big ring on a small one!",
+    path: "/games/tower-of-hanoi",
+    icon: "🗼",
+  },
+  {
     id: "tic-tac-toe",
     name: "Tic-Tac-Toe",
     description: "Challenge a friend! Share a link and play in real time.",

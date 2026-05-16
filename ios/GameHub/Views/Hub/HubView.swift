@@ -77,6 +77,22 @@ struct HubView: View {
             gradient: [Color(hex: "#FB923C"), Color(hex: "#F472B6")],
             category: .singlePlayer
         ),
+        GameEntry(
+            id: "copy-pattern",
+            title: "Copy the Pattern",
+            subtitle: "Tap the lit-up animals in order",
+            emoji: "🎵",
+            gradient: [Color(hex: "#F472B6"), Color(hex: "#FACC15")],
+            category: .singlePlayer
+        ),
+        GameEntry(
+            id: "tower-of-hanoi",
+            title: "Tower of Hanoi",
+            subtitle: "Stack the rings — small on big",
+            emoji: "🗼",
+            gradient: [Color(hex: "#0EA5E9"), Color(hex: "#A78BFA")],
+            category: .singlePlayer
+        ),
     ]
 
     private var multiplayerGames: [GameEntry] { games.filter { $0.category == .multiplayer } }
@@ -160,6 +176,10 @@ struct HubView: View {
             Connect4LobbyView()
         case "find-animal":
             FindAnimalView()
+        case "copy-pattern":
+            CopyPatternView()
+        case "tower-of-hanoi":
+            TowerOfHanoiView()
         default:
             EmptyView()
         }
