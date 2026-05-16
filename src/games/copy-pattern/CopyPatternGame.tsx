@@ -238,6 +238,10 @@ export function CopyPatternGame() {
   const handlePadTap = useCallback(
     (padId: number) => {
       if (phase !== "input") return;
+      // Phase stays "input" during the brief delay before the next round / win
+      // transition fires; ignore extra taps in that window so we don't read past
+      // the end of the sequence.
+      if (userIndex >= sequence.length) return;
       const expected = sequence[userIndex];
 
       // Always flash the tapped pad for feedback

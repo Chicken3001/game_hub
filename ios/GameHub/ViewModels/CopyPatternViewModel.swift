@@ -70,6 +70,10 @@ final class CopyPatternViewModel {
 
     func tap(_ padId: Int) {
         guard phase == .input else { return }
+        // After a round-completing tap, phase stays .input until the scheduled
+        // next-round/won transition fires. Reject taps once userIndex has caught
+        // up to the sequence length to avoid an out-of-bounds read.
+        guard userIndex < sequence.count else { return }
         let expected = sequence[userIndex]
         flashPad(padId)
 
