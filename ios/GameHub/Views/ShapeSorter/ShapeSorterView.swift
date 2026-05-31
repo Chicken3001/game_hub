@@ -14,8 +14,10 @@ private struct BinFramesKey: PreferenceKey {
 struct ShapeSorterView: View {
     @State private var viewModel = ShapeSorterViewModel()
     @State private var binFrames: BinFrames = BinFrames()
-    @State private var dragLocation: CGPoint = .zero
-    @State private var isDragging: Bool = false
+    // GestureState auto-resets to nil when the drag ends *or* is cancelled
+    // (ScrollView gesture arbitration, system interruption, app backgrounding).
+    // Plain @State leaked a stuck overlay when onEnded never fired.
+    @GestureState private var dragLocation: CGPoint? = nil
 
     private let shapeSize: CGFloat = 96
     private let purpleBorder = Color(red: 0xE9/255, green: 0xD5/255, blue: 0xFF/255)
@@ -42,10 +44,10 @@ struct ShapeSorterView: View {
                 .padding(20)
             }
 
-            if isDragging, let shape = viewModel.currentShape {
+            if let loc = dragLocation, let shape = viewModel.currentShape {
                 ShapeIcon(kind: shape, size: shapeSize, outline: false)
                     .shadow(color: .black.opacity(0.25), radius: 10, x: 0, y: 6)
-                    .position(dragLocation)
+                    .position(loc)
                     .allowsHitTesting(false)
                     .transition(.identity)
             }
@@ -108,8 +110,8 @@ struct ShapeSorterView: View {
 
             if let shape = viewModel.currentShape, viewModel.flashBin == nil {
                 ShapeIcon(kind: shape, size: shapeSize, outline: false)
-                    .opacity(isDragging ? 0 : 1)
-                    .gesture(dragGesture)
+                    .opacity(dragLocation != nil ? 0 : 1)
+                    .highPriorityGesture(dragGesture)
                     .id(viewModel.index)
             }
 
@@ -159,15 +161,13 @@ struct ShapeSorterView: View {
 
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 0, coordinateSpace: .named("shapeSorter"))
-            .onChanged { value in
+            .updating($dragLocation) { value, state, _ in
                 guard !viewModel.isBusy else { return }
-                isDragging = true
-                dragLocation = value.location
+                state = value.location
             }
             .onEnded { value in
-                let endPoint = value.location
-                isDragging = false
                 guard !viewModel.isBusy else { return }
+                let endPoint = value.location
                 if let hit = binFrames.frames.first(where: { $0.value.contains(endPoint) })?.key {
                     viewModel.handleDrop(on: hit)
                 } else {

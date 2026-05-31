@@ -170,17 +170,33 @@ export function ShapeSorterGame() {
       if (!matched) handleWrong();
     };
 
+    // Browser/OS can cancel the pointer (system gestures, multi-touch
+    // interruption, scroll takeover). Without this, the shape stays stuck
+    // at position:fixed forever.
+    const onCancel = () => {
+      if (!draggingRef.current) return;
+      draggingRef.current = false;
+      setDragging(false);
+    };
+
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    window.addEventListener("blur", onCancel);
     return () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      window.removeEventListener("blur", onCancel);
     };
   }, [handleCorrect, handleWrong]);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (shaking || flashBin) return;
+      // Ignore extra touches while a drag is in progress — prevents a second
+      // finger from snapping the shape away from the first.
+      if (draggingRef.current) return;
       const rect = e.currentTarget.getBoundingClientRect();
       setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
       setDragPos({ x: e.clientX, y: e.clientY });
