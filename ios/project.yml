@@ -11,6 +11,25 @@ packages:
     url: https://github.com/supabase/supabase-swift
     from: "2.0.0"
 
+# Declared here so `xcodegen` regenerates the shared scheme instead of deleting it.
+# `xcodebuild -scheme GameHub` depends on it; building with -target instead fails
+# because SPM package products (Supabase) don't get wired up.
+schemes:
+  GameHub:
+    build:
+      targets:
+        GameHub: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
+
 targets:
   GameHub:
     type: application

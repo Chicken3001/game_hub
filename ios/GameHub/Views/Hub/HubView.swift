@@ -38,6 +38,14 @@ struct HubView: View {
             category: .multiplayer
         ),
         GameEntry(
+            id: "life",
+            title: "The Game of Life",
+            subtitle: "Spin, work, and retire rich",
+            emoji: "🚗",
+            gradient: [Color(hex: "#6366F1"), Color(hex: "#22D3EE")],
+            category: .multiplayer
+        ),
+        GameEntry(
             id: "animal-match",
             title: "Animal Match",
             subtitle: "Match animals across the grid",
@@ -174,6 +182,8 @@ struct HubView: View {
             CheckersLobbyView()
         case "connect4":
             Connect4LobbyView()
+        case "life":
+            LifeLobbyView()
         case "find-animal":
             FindAnimalView()
         case "copy-pattern":

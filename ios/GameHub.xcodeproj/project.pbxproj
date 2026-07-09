@@ -29,9 +29,11 @@
 		498561571A6FEEDFE7BE9B42 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5BFA7E628E745E269FD7F34 /* Config.swift */; };
 		4A3F0CBAC0DDF8D41486931E /* Connect4LobbyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F5824F390D78D69CBC1E21F /* Connect4LobbyViewModel.swift */; };
 		4D6028E57165554AC1107444 /* TicTacToeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40CEA4B6ECDA15F3FCF7B11F /* TicTacToeService.swift */; };
+		4DF7BB64AF130440E1F9A48F /* LifeMultiplayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48A4E9233D85072CCFA145A3 /* LifeMultiplayerViewModel.swift */; };
 		512EC7F1D57352EEB773186A /* ShapeSorterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49DD527BCE738063BAB0A943 /* ShapeSorterView.swift */; };
 		562F5469735342B77D7A1D9E /* CheckersLocalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F208D5D36ECDBFC7BD36F6 /* CheckersLocalViewModel.swift */; };
 		59299BA21D0D704F49BE32CB /* TicTacToeGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E58A8115C9E9EDF9CEC9AFAB /* TicTacToeGameView.swift */; };
+		5F21A25E7C419BE12E95B650 /* LifeLobbyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 902A0C4323415870186FFE01 /* LifeLobbyViewModel.swift */; };
 		661D5AE5087F4DC6CB0B59E3 /* TicTacToeLocalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3036E57986C5250A77D9B33F /* TicTacToeLocalViewModel.swift */; };
 		68629954F3D867892275341E /* Connect4LocalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5403F03EFB6F8FEE8464673E /* Connect4LocalView.swift */; };
 		6ABCBD7CD1F638DC68C608DA /* CheckersLobbyViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D49A400D4A957C63881BB108 /* CheckersLobbyViewModel.swift */; };
@@ -47,22 +49,27 @@
 		9196F0B750CDB7407181A040 /* Bubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1E69EAA287614F11C1301D /* Bubble.swift */; };
 		98D6184753312E5FB46DA2F7 /* CheckersMultiplayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE07A32295F1B3F9E93F266 /* CheckersMultiplayerView.swift */; };
 		9A4640562CEFBD6D606D3AF2 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EF55AD09FE2C8893FD20E0F /* SupabaseService.swift */; };
+		9ACC34C9D3B8DE7C53056DB6 /* LifeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2068216A4ABBD355500EC7C /* LifeService.swift */; };
 		AA49D8EB56760C8A4C13F0A8 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0419C60B1DFD94390D696249 /* AuthViewModel.swift */; };
+		AEE995CD2CBE28B387CFF590 /* LifeMultiplayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 673985E1E42A5F2A27C3F93E /* LifeMultiplayerView.swift */; };
 		AF3585C7C3EFF8D48E194F77 /* TowerOfHanoi.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828F54FEA40B174A6C310D52 /* TowerOfHanoi.swift */; };
 		B6B868E3A6268DDF0FDF2B89 /* Connect4BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBF9541F6E5EF8839F4789FD /* Connect4BoardView.swift */; };
 		B83AEB38C83A84CD2F61834D /* TicTacToeMultiplayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565E1119C49041E58756F5A8 /* TicTacToeMultiplayerViewModel.swift */; };
 		B8A29CB88793A0615E763EC7 /* CopyPatternViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD09DECD70F4ABA32E2086A1 /* CopyPatternViewModel.swift */; };
 		BE61B1D197B48E9565993B26 /* CheckersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD46E91CA253800777EF3F62 /* CheckersService.swift */; };
 		C2D3B8F7CFCEB8B8D6ACFA66 /* Animal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E818D1281F8A8BE12CA3E7 /* Animal.swift */; };
+		C35E65B985B5BB32A437445C /* LifeLobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27C3E5D08B6FCC4265257814 /* LifeLobbyView.swift */; };
 		CA2429AAD231E1C5DE10CD20 /* FindAnimalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BA90B2C1602A2163392DE27 /* FindAnimalViewModel.swift */; };
 		CC88BC327415DE3EF5DB14FC /* WinCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F43B50A9985534DBE45C77 /* WinCelebrationView.swift */; };
 		D37FA399C7ECFAC7F0DE643D /* TowerOfHanoiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F974A94BBEF4D099BDD1A2 /* TowerOfHanoiView.swift */; };
 		D923BDF1909D7670A56845AB /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BA57BBC10792C50D531486C /* Theme.swift */; };
+		DD7EC59F23789A94E86F2F19 /* LifeBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120389D9210C89B7D3D74855 /* LifeBoardView.swift */; };
 		DE5A62E00A3EB2E6752F6730 /* Connect4MultiplayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745368020E31552493A06E1F /* Connect4MultiplayerViewModel.swift */; };
 		DF066970D61D51E896A62AEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9BE3D3BB84BB4C705E8DF9A0 /* Assets.xcassets */; };
 		E2885C0ECAB5ED449D8E5281 /* FarmMatchCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB718305B568FAEE282AB0E7 /* FarmMatchCard.swift */; };
 		E38633E695F935C47E4E46CE /* BubblePopGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D3B6C9AA276D19F120CCB2 /* BubblePopGameView.swift */; };
 		E51AB72FC69148505F3BB36B /* GameHubApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7CCB63137D85CF4F79B392 /* GameHubApp.swift */; };
+		E7598B7BA10E6A1F51892187 /* Life.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5851C4B3D9C4B5D7E3D8D096 /* Life.swift */; };
 		EB655441C7BDD3F2C13BD575 /* CheckersLobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F9FE6894349EC9F8EF3D60 /* CheckersLobbyView.swift */; };
 		F07ED02F8B67C90ABF692D01 /* TicTacToe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 775D4F31249F3835F4DC2EEB /* TicTacToe.swift */; };
 		F16DFAB93AEFC425DF2518AD /* CategorySelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DDDB244146AD7F0D5D0CA6 /* CategorySelectorView.swift */; };
@@ -78,6 +85,7 @@
 /* Begin PBXFileReference section */
 		0419C60B1DFD94390D696249 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		0BCFDEAE21376D89ABAF59A7 /* Checkers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Checkers.swift; sourceTree = "<group>"; };
+		120389D9210C89B7D3D74855 /* LifeBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeBoardView.swift; sourceTree = "<group>"; };
 		129DDFF499BD60893C8AAEAA /* AnimalMatchGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalMatchGameView.swift; sourceTree = "<group>"; };
 		145AC20EFDC9113A8A3BB3C6 /* Shape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shape.swift; sourceTree = "<group>"; };
 		149254C6FB6B52D5B5F6E33C /* AnimalMatchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimalMatchViewModel.swift; sourceTree = "<group>"; };
@@ -86,10 +94,12 @@
 		1F174B97B6F66031E751FB71 /* CopyPatternView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyPatternView.swift; sourceTree = "<group>"; };
 		21F208D5D36ECDBFC7BD36F6 /* CheckersLocalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersLocalViewModel.swift; sourceTree = "<group>"; };
 		25F43B50A9985534DBE45C77 /* WinCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinCelebrationView.swift; sourceTree = "<group>"; };
+		27C3E5D08B6FCC4265257814 /* LifeLobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeLobbyView.swift; sourceTree = "<group>"; };
 		3036E57986C5250A77D9B33F /* TicTacToeLocalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeLocalViewModel.swift; sourceTree = "<group>"; };
 		3F5824F390D78D69CBC1E21F /* Connect4LobbyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4LobbyViewModel.swift; sourceTree = "<group>"; };
 		40CEA4B6ECDA15F3FCF7B11F /* TicTacToeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeService.swift; sourceTree = "<group>"; };
 		45DDDB244146AD7F0D5D0CA6 /* CategorySelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategorySelectorView.swift; sourceTree = "<group>"; };
+		48A4E9233D85072CCFA145A3 /* LifeMultiplayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeMultiplayerViewModel.swift; sourceTree = "<group>"; };
 		49DD527BCE738063BAB0A943 /* ShapeSorterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeSorterView.swift; sourceTree = "<group>"; };
 		4A8E49938F1B21892833A02F /* Connect4ComputerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4ComputerViewModel.swift; sourceTree = "<group>"; };
 		4BA57BBC10792C50D531486C /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -99,10 +109,12 @@
 		521EF3309A3D5674C582DD45 /* TicTacToeLobbyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeLobbyViewModel.swift; sourceTree = "<group>"; };
 		5403F03EFB6F8FEE8464673E /* Connect4LocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4LocalView.swift; sourceTree = "<group>"; };
 		565E1119C49041E58756F5A8 /* TicTacToeMultiplayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeMultiplayerViewModel.swift; sourceTree = "<group>"; };
+		5851C4B3D9C4B5D7E3D8D096 /* Life.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Life.swift; sourceTree = "<group>"; };
 		5F860CFDE34376E325B83B01 /* TicTacToeLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeLocalView.swift; sourceTree = "<group>"; };
 		61F9FE6894349EC9F8EF3D60 /* CheckersLobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersLobbyView.swift; sourceTree = "<group>"; };
 		666B0A46E8A10D034D96F4CF /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		6712F9D062BA825550CD7814 /* CheckersMultiplayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersMultiplayerViewModel.swift; sourceTree = "<group>"; };
+		673985E1E42A5F2A27C3F93E /* LifeMultiplayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeMultiplayerView.swift; sourceTree = "<group>"; };
 		6EF55AD09FE2C8893FD20E0F /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		745368020E31552493A06E1F /* Connect4MultiplayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4MultiplayerViewModel.swift; sourceTree = "<group>"; };
 		76D3B6C9AA276D19F120CCB2 /* BubblePopGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubblePopGameView.swift; sourceTree = "<group>"; };
@@ -113,6 +125,7 @@
 		839324AABB340C15F90E6815 /* Connect4MultiplayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4MultiplayerView.swift; sourceTree = "<group>"; };
 		8BBB28FD7AB780FAC46D921B /* CheckersComputerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersComputerViewModel.swift; sourceTree = "<group>"; };
 		8CA23293BDFAE0297F3255AB /* CheckersLocalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersLocalView.swift; sourceTree = "<group>"; };
+		902A0C4323415870186FFE01 /* LifeLobbyViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeLobbyViewModel.swift; sourceTree = "<group>"; };
 		9579FC2C9B861764BFD1770D /* CheckersComputerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckersComputerView.swift; sourceTree = "<group>"; };
 		95B5B08A9411F16D46DA28EE /* Connect4LocalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4LocalViewModel.swift; sourceTree = "<group>"; };
 		972003B35F04929545BFF153 /* FindAnimalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindAnimalView.swift; sourceTree = "<group>"; };
@@ -123,6 +136,7 @@
 		AAB105830571BF6724B3ACBE /* BubblePopViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubblePopViewModel.swift; sourceTree = "<group>"; };
 		AD09DECD70F4ABA32E2086A1 /* CopyPatternViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyPatternViewModel.swift; sourceTree = "<group>"; };
 		AF7CCB63137D85CF4F79B392 /* GameHubApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHubApp.swift; sourceTree = "<group>"; };
+		B2068216A4ABBD355500EC7C /* LifeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifeService.swift; sourceTree = "<group>"; };
 		B4E27C8977778B67AECD35CD /* Connect4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4.swift; sourceTree = "<group>"; };
 		B85FDC02753AF442A78275B1 /* TowerOfHanoiViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TowerOfHanoiViewModel.swift; sourceTree = "<group>"; };
 		B95DC1A3E0A5776B142CA1CB /* Connect4LobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connect4LobbyView.swift; sourceTree = "<group>"; };
@@ -163,6 +177,7 @@
 				666B0A46E8A10D034D96F4CF /* AuthService.swift */,
 				DD46E91CA253800777EF3F62 /* CheckersService.swift */,
 				C2C1BD85247F59583849A230 /* Connect4Service.swift */,
+				B2068216A4ABBD355500EC7C /* LifeService.swift */,
 				6EF55AD09FE2C8893FD20E0F /* SupabaseService.swift */,
 				40CEA4B6ECDA15F3FCF7B11F /* TicTacToeService.swift */,
 				FBB1AE8F36201BDB84529FC5 /* ToneSynth.swift */,
@@ -185,6 +200,16 @@
 				173ECAB58CF8119DF51B308C /* HubView.swift */,
 			);
 			path = Hub;
+			sourceTree = "<group>";
+		};
+		4BC7AABF8A2439C7E0AA92FE /* Life */ = {
+			isa = PBXGroup;
+			children = (
+				120389D9210C89B7D3D74855 /* LifeBoardView.swift */,
+				27C3E5D08B6FCC4265257814 /* LifeLobbyView.swift */,
+				673985E1E42A5F2A27C3F93E /* LifeMultiplayerView.swift */,
+			);
+			path = Life;
 			sourceTree = "<group>";
 		};
 		4DD14EE61BA851333B8C636F /* CopyPattern */ = {
@@ -231,6 +256,7 @@
 				B4E27C8977778B67AECD35CD /* Connect4.swift */,
 				FF76F019CE504894D05F17B0 /* CopyPattern.swift */,
 				CB718305B568FAEE282AB0E7 /* FarmMatchCard.swift */,
+				5851C4B3D9C4B5D7E3D8D096 /* Life.swift */,
 				145AC20EFDC9113A8A3BB3C6 /* Shape.swift */,
 				775D4F31249F3835F4DC2EEB /* TicTacToe.swift */,
 				828F54FEA40B174A6C310D52 /* TowerOfHanoi.swift */,
@@ -327,6 +353,7 @@
 				66C985F3295FFFC3C577628F /* FarmMatch */,
 				BA2465356B39B954F00C200B /* FindAnimal */,
 				41D3F1E5E7EA57E907FD458C /* Hub */,
+				4BC7AABF8A2439C7E0AA92FE /* Life */,
 				F8A9426F8AF9D725873CE468 /* ShapeSorter */,
 				F79CBAFF99EF7B4ADB7221AC /* TicTacToe */,
 				A24ED98262CB16BCDEF3DE1E /* TowerOfHanoi */,
@@ -351,6 +378,8 @@
 				AD09DECD70F4ABA32E2086A1 /* CopyPatternViewModel.swift */,
 				FB7280976B493ED1EE62BE03 /* FarmMatchViewModel.swift */,
 				4BA90B2C1602A2163392DE27 /* FindAnimalViewModel.swift */,
+				902A0C4323415870186FFE01 /* LifeLobbyViewModel.swift */,
+				48A4E9233D85072CCFA145A3 /* LifeMultiplayerViewModel.swift */,
 				C3F579CB256FD6E898F856E5 /* ShapeSorterViewModel.swift */,
 				521EF3309A3D5674C582DD45 /* TicTacToeLobbyViewModel.swift */,
 				3036E57986C5250A77D9B33F /* TicTacToeLocalViewModel.swift */,
@@ -508,6 +537,13 @@
 				CA2429AAD231E1C5DE10CD20 /* FindAnimalViewModel.swift in Sources */,
 				E51AB72FC69148505F3BB36B /* GameHubApp.swift in Sources */,
 				3E504E33E17A230C646B673B /* HubView.swift in Sources */,
+				E7598B7BA10E6A1F51892187 /* Life.swift in Sources */,
+				DD7EC59F23789A94E86F2F19 /* LifeBoardView.swift in Sources */,
+				C35E65B985B5BB32A437445C /* LifeLobbyView.swift in Sources */,
+				5F21A25E7C419BE12E95B650 /* LifeLobbyViewModel.swift in Sources */,
+				AEE995CD2CBE28B387CFF590 /* LifeMultiplayerView.swift in Sources */,
+				4DF7BB64AF130440E1F9A48F /* LifeMultiplayerViewModel.swift in Sources */,
+				9ACC34C9D3B8DE7C53056DB6 /* LifeService.swift in Sources */,
 				2B932206016FE586993F2157 /* LoginView.swift in Sources */,
 				324DBBD422A15ABF37299177 /* RootView.swift in Sources */,
 				0290ACFF4BF88A0251858669 /* Shape.swift in Sources */,
